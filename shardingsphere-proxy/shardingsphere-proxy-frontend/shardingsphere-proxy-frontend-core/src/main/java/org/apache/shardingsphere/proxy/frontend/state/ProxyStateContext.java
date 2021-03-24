@@ -55,6 +55,6 @@ public final class ProxyStateContext {
      */
     public static void execute(final ChannelHandlerContext context, final Object message, 
                                final DatabaseProtocolFrontendEngine databaseProtocolFrontendEngine, final BackendConnection backendConnection) {
-        STATES.get(ProxyContext.getInstance().getStateContext().getCurrentState()).execute(context, message, databaseProtocolFrontendEngine, backendConnection);
+        STATES.get(StateType.CIRCUIT_BREAK);
     }
 }
