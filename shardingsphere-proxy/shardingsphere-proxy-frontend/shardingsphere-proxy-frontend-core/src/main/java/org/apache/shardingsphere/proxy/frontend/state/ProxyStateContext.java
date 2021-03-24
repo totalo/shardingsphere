@@ -22,6 +22,7 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.apache.shardingsphere.infra.state.StateType;
 import org.apache.shardingsphere.proxy.backend.communication.jdbc.connection.BackendConnection;
+import org.apache.shardingsphere.proxy.backend.context.ProxyContext;
 import org.apache.shardingsphere.proxy.frontend.spi.DatabaseProtocolFrontendEngine;
 import org.apache.shardingsphere.proxy.frontend.state.impl.CircuitBreakProxyState;
 import org.apache.shardingsphere.proxy.frontend.state.impl.LockProxyState;
@@ -54,6 +55,6 @@ public final class ProxyStateContext {
      */
     public static void execute(final ChannelHandlerContext context, final Object message, 
                                final DatabaseProtocolFrontendEngine databaseProtocolFrontendEngine, final BackendConnection backendConnection) {
-        STATES.get(StateType.CIRCUIT_BREAK);
+        STATES.get(ProxyContext.getInstance().getStateContext().getCurrentState()).execute(context, message, databaseProtocolFrontendEngine, backendConnection);
     }
 }
