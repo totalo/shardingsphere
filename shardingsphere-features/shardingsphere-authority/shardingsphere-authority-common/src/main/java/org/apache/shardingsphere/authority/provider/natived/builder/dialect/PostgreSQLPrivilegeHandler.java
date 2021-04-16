@@ -46,6 +46,10 @@ import java.util.stream.Collectors;
  * PostgreSQL privilege handler.
  */
 public final class PostgreSQLPrivilegeHandler implements StoragePrivilegeHandler {
+
+    private static final String CREATE_USER_SQL = "CREATE USER %s";
+
+    private static final String GRANT_ALL_SQL = "GRANT ALL ON ALL TABLES IN SCHEMA public TO %s";
     
     private static final String ROLES_SQL = "select * from pg_roles WHERE rolname IN (%s)";
     
@@ -56,15 +60,33 @@ public final class PostgreSQLPrivilegeHandler implements StoragePrivilegeHandler
     public Collection<ShardingSphereUser> diff(final Collection<ShardingSphereUser> users, final DataSource dataSource) throws SQLException {
         return Collections.emptyList();
     }
-    
+
     @Override
     public void create(final Collection<ShardingSphereUser> users, final DataSource dataSource) throws SQLException {
+        try (Connection connection = dataSource.getConnection(); Statement statement = connection.createStatement()) {
+            statement.execute(getCreateUsersSQL(users));
+        }
     }
-    
+
+    private String getCreateUsersSQL(final Collection<ShardingSphereUser> users) {
+        String createUsers = users.stream().map(each -> String.format("'%s' WITH PASSWORD '%s'",
+                each.getGrantee().getUsername(), each.getPassword())).collect(Collectors.joining(", "));
+        return String.format(CREATE_USER_SQL, createUsers);
+    }
+
     @Override
     public void grantAll(final Collection<ShardingSphereUser> users, final DataSource dataSource) throws SQLException {
+        try (Connection connection = dataSource.getConnection(); Statement statement = connection.createStatement()) {
+            statement.execute(getGrantAllSQL(users));
+        }
     }
-    
+
+    private String getGrantAllSQL(final Collection<ShardingSphereUser> users) {
+        String grantUsers = users.stream().map(each -> String.format("'%s'",
+                each.getGrantee().getUsername())).collect(Collectors.joining(", "));
+        return String.format(GRANT_ALL_SQL, grantUsers);
+    }
+
     @Override
     public Map<ShardingSphereUser, NativePrivileges> load(final Collection<ShardingSphereUser> users, final DataSource dataSource) throws SQLException {
         Map<ShardingSphereUser, NativePrivileges> result = new LinkedHashMap<>();

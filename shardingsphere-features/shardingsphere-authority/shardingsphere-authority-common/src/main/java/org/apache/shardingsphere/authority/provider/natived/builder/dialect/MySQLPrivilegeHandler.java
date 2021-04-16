@@ -17,6 +17,7 @@
 
 package org.apache.shardingsphere.authority.provider.natived.builder.dialect;
 
+import com.google.common.collect.Lists;
 import org.apache.shardingsphere.authority.provider.natived.model.privilege.database.SchemaPrivileges;
 import org.apache.shardingsphere.authority.provider.natived.model.privilege.database.TablePrivileges;
 import org.apache.shardingsphere.authority.provider.natived.builder.StoragePrivilegeHandler;
@@ -30,12 +31,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
