@@ -32,7 +32,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -47,7 +46,7 @@ import java.util.stream.Collectors;
  */
 public final class PostgreSQLPrivilegeHandler implements StoragePrivilegeHandler {
 
-    private static final String CREATE_USER_SQL = "CREATE USER %s";
+    private static final String CREATE_USER_SQL = "CREATE USER %s WITH PASSWORD '%s'";
 
     private static final String GRANT_ALL_SQL = "GRANT ALL ON ALL TABLES IN SCHEMA public TO %s";
     
@@ -58,20 +57,29 @@ public final class PostgreSQLPrivilegeHandler implements StoragePrivilegeHandler
     
     @Override
     public Collection<ShardingSphereUser> diff(final Collection<ShardingSphereUser> users, final DataSource dataSource) throws SQLException {
-        return Collections.emptyList();
+        Collection<Grantee> grantees = new LinkedList<>();
+        try (Connection connection = dataSource.getConnection()) {
+            Statement statement = connection.createStatement();
+            try (ResultSet resultSet = statement.executeQuery(getRolePrivilegesSQL(users))) {
+                while (resultSet.next()) {
+                    grantees.add(new Grantee(resultSet.getString("rolname"), ""));
+                }
+            }
+        }
+        return users.stream().filter(each -> !grantees.contains(each.getGrantee())).collect(Collectors.toList());
     }
 
     @Override
     public void create(final Collection<ShardingSphereUser> users, final DataSource dataSource) throws SQLException {
         try (Connection connection = dataSource.getConnection(); Statement statement = connection.createStatement()) {
-            statement.execute(getCreateUsersSQL(users));
+            for (ShardingSphereUser each : users) {
+                statement.execute(getCreateUsersSQL(each));
+            }
         }
     }
 
-    private String getCreateUsersSQL(final Collection<ShardingSphereUser> users) {
-        String createUsers = users.stream().map(each -> String.format("'%s' WITH PASSWORD '%s'",
-                each.getGrantee().getUsername(), each.getPassword())).collect(Collectors.joining(", "));
-        return String.format(CREATE_USER_SQL, createUsers);
+    private String getCreateUsersSQL(final ShardingSphereUser users) {
+        return String.format(CREATE_USER_SQL, users.getGrantee(), users.getPassword());
     }
 
     @Override
@@ -82,8 +90,8 @@ public final class PostgreSQLPrivilegeHandler implements StoragePrivilegeHandler
     }
 
     private String getGrantAllSQL(final Collection<ShardingSphereUser> users) {
-        String grantUsers = users.stream().map(each -> String.format("'%s'",
-                each.getGrantee().getUsername())).collect(Collectors.joining(", "));
+        String grantUsers = users.stream().map(each -> String.format("'%s'", each.getGrantee().getUsername()))
+                .collect(Collectors.joining(", "));
         return String.format(GRANT_ALL_SQL, grantUsers);
     }
 
