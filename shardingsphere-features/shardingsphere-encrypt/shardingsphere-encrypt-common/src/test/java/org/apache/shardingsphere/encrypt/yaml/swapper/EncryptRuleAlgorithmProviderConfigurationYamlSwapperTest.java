@@ -38,6 +38,7 @@ import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertNotNull;
 
 @RunWith(MockitoJUnitRunner.class)
 public final class EncryptRuleAlgorithmProviderConfigurationYamlSwapperTest {
@@ -54,10 +55,13 @@ public final class EncryptRuleAlgorithmProviderConfigurationYamlSwapperTest {
         YamlEncryptRuleConfiguration actual = getSwapper().swapToYamlConfiguration(createAlgorithmProvidedEncryptRuleConfiguration());
         assertThat(actual.getTables().size(), is(1));
         assertThat(actual.getEncryptors().size(), is(0));
+        assertThat(actual.isQueryWithCipherColumn(), is(true));
+        assertNotNull(actual.getTables().get("tbl"));
+        assertThat(actual.getTables().get("tbl").isQueryWithCipherColumn(), is(true));
     }
     
     private AlgorithmProvidedEncryptRuleConfiguration createAlgorithmProvidedEncryptRuleConfiguration() {
-        Collection<EncryptTableRuleConfiguration> tables = Collections.singletonList(new EncryptTableRuleConfiguration("tbl", Collections.emptyList()));
+        Collection<EncryptTableRuleConfiguration> tables = Collections.singletonList(new EncryptTableRuleConfiguration("tbl", Collections.emptyList(), true));
         Map<String, EncryptAlgorithm> encryptors = new LinkedHashMap<>();
         return new AlgorithmProvidedEncryptRuleConfiguration(tables, encryptors, true);
     }

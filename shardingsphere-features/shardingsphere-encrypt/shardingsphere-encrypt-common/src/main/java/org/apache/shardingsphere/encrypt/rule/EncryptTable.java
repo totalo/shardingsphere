@@ -18,6 +18,7 @@
 package org.apache.shardingsphere.encrypt.rule;
 
 import com.google.common.collect.Maps;
+import lombok.Getter;
 import org.apache.shardingsphere.encrypt.api.config.rule.EncryptColumnRuleConfiguration;
 import org.apache.shardingsphere.encrypt.api.config.rule.EncryptTableRuleConfiguration;
 import org.apache.shardingsphere.infra.exception.ShardingSphereException;
@@ -32,12 +33,16 @@ import java.util.TreeMap;
 /**
  * Encrypt table.
  */
+@Getter
 public final class EncryptTable {
     
     private final Map<String, EncryptColumn> columns;
+
+    private final boolean queryWithCipherColumn;
     
     public EncryptTable(final EncryptTableRuleConfiguration config) {
         columns = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+        queryWithCipherColumn = config.isQueryWithCipherColumn();
         for (EncryptColumnRuleConfiguration each : config.getColumns()) {
             columns.put(each.getLogicColumn(), new EncryptColumn(each.getCipherColumn(), each.getAssistedQueryColumn(), each.getPlainColumn(), each.getEncryptorName()));
         }
