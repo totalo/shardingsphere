@@ -50,10 +50,10 @@ public final class ParameterizedArrayFactory {
     private static final IntegrationTestEnvironment ENV = IntegrationTestEnvironment.getInstance();
     
     /**
-     * Get assertion parameterized array.
+     * Get assertion org.apache.shardingsphere.test.parser.parameterized array.
      *
      * @param sqlCommandType SQL command type
-     * @return assertion parameterized array
+     * @return assertion org.apache.shardingsphere.test.parser.parameterized array
      */
     public static Collection<AssertionParameterizedArray> getAssertionParameterized(final SQLCommandType sqlCommandType) {
         Collection<AssertionParameterizedArray> result = new LinkedList<>();
@@ -110,10 +110,10 @@ public final class ParameterizedArrayFactory {
     }
     
     /**
-     * Get case parameterized array.
+     * Get case org.apache.shardingsphere.test.parser.parameterized array.
      *
      * @param sqlCommandType SQL command type
-     * @return case parameterized array
+     * @return case org.apache.shardingsphere.test.parser.parameterized array
      */
     public static Collection<ParameterizedArray> getCaseParameterized(final SQLCommandType sqlCommandType) {
         Collection<ParameterizedArray> result = new LinkedList<>();

@@ -33,9 +33,9 @@ public final class RunnerParameters {
     private final Runnable childStatement;
     
     /**
-     * Get parameterized array.
+     * Get org.apache.shardingsphere.test.parser.parameterized array.
      *
-     * @return parameterized array
+     * @return org.apache.shardingsphere.test.parser.parameterized array
      */
     @SneakyThrows(ReflectiveOperationException.class)
     public ParameterizedArray getParameterizedArray() {

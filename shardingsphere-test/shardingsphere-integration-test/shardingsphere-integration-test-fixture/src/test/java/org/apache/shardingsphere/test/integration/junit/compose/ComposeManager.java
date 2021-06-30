@@ -36,7 +36,7 @@ public final class ComposeManager extends ExternalResource {
     /**
      * Create or get container compose.
      *
-     * @param parameterizedArray parameterized array
+     * @param parameterizedArray org.apache.shardingsphere.test.parser.parameterized array
      * @return container compose
      */
     public ContainerCompose getOrCreateCompose(final ParameterizedArray parameterizedArray) {

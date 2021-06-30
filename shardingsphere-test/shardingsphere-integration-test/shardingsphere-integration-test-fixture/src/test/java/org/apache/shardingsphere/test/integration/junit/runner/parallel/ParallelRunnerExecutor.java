@@ -27,7 +27,7 @@ public interface ParallelRunnerExecutor {
     /**
      * Execute child statement.
      *
-     * @param parameterizedArray parameterized array
+     * @param parameterizedArray org.apache.shardingsphere.test.parser.parameterized array
      * @param childStatement child statement
      */
     void execute(ParameterizedArray parameterizedArray, Runnable childStatement);

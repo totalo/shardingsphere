@@ -98,8 +98,8 @@ public abstract class MySQLFormatSQLVisitor extends MySQLStatementBaseVisitor<St
             if (props.containsKey("upperCase")) {
                 setUpperCase(Boolean.parseBoolean(props.getProperty("upperCase")));
             }
-            if (props.containsKey("parameterized")) {
-                setParameterized(Boolean.parseBoolean(props.getProperty("parameterized")));
+            if (props.containsKey("org.apache.shardingsphere.test.parser.parameterized")) {
+                setParameterized(Boolean.parseBoolean(props.getProperty("org.apache.shardingsphere.test.parser.parameterized")));
             }
             if (props.containsKey("projectionsCountOfLine")) {
                 setProjectionsCountOfLine(Integer.parseInt(props.getProperty("projectionsCountOfLine")));

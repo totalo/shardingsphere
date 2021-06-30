@@ -17,8 +17,8 @@
 
 package org.apache.shardingsphere.sql.parser.postgresql;
 
-import org.apache.shardingsphere.test.sql.parser.parameterized.engine.UnsupportedSQLParserParameterizedTest;
-import org.apache.shardingsphere.test.sql.parser.parameterized.jaxb.sql.SQLCaseType;
+import org.apache.shardingsphere.parser.parameterized.engine.UnsupportedSQLParserParameterizedTest;
+import org.apache.shardingsphere.parser.parameterized.jaxb.sql.SQLCaseType;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;

@@ -28,7 +28,7 @@ public class SQLFormatExampleMain {
     public static void main(String[] args) {
         String sql = "select age as b, name n from table1 join table2 where id=1 and name='lu';";
         Properties props = new Properties();
-        props.setProperty("parameterized", "false");
+        props.setProperty("org.apache.shardingsphere.test.parser.parameterized", "false");
         SQLParserEngine parserEngine = new SQLParserEngine("MySQL");
         ParseTree tree = parserEngine.parse(sql, false);
         SQLVisitorEngine visitorEngine = new SQLVisitorEngine("MySQL", "FORMAT", props);
