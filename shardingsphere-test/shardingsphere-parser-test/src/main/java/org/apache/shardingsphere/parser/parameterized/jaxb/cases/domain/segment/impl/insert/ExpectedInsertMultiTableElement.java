@@ -15,22 +15,22 @@
  * limitations under the License.
  */
 
-package org.apache.shardingsphere.parser.parameterized.jaxb.cases.domain.segment.impl.index;
+package org.apache.shardingsphere.parser.parameterized.jaxb.cases.domain.segment.impl.insert;
 
 import lombok.Getter;
-import lombok.Setter;
-import org.apache.shardingsphere.parser.parameterized.jaxb.cases.domain.segment.AbstractExpectedIdentifierSQLSegment;
-import org.apache.shardingsphere.parser.parameterized.jaxb.cases.domain.segment.impl.table.ExpectedOwner;
+import org.apache.shardingsphere.parser.parameterized.jaxb.cases.domain.segment.AbstractExpectedSQLSegment;
+import org.apache.shardingsphere.parser.parameterized.jaxb.cases.domain.statement.dml.InsertStatementTestCase;
 
 import javax.xml.bind.annotation.XmlElement;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
- * Expected index.
+ * Expected insert multi table element.
  */
 @Getter
-@Setter
-public final class ExpectedIndex extends AbstractExpectedIdentifierSQLSegment {
-
-    @XmlElement
-    private ExpectedOwner owner;
+public final class ExpectedInsertMultiTableElement extends AbstractExpectedSQLSegment {
+    
+    @XmlElement(name = "table-element")
+    private List<InsertStatementTestCase> insertTestCases = new LinkedList<>();
 }

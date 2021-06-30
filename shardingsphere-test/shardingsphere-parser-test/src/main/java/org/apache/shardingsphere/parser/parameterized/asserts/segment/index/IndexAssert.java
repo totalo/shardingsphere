@@ -21,6 +21,7 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.apache.shardingsphere.parser.parameterized.asserts.SQLCaseAssertContext;
 import org.apache.shardingsphere.parser.parameterized.asserts.segment.SQLSegmentAssert;
+import org.apache.shardingsphere.parser.parameterized.asserts.segment.owner.OwnerAssert;
 import org.apache.shardingsphere.parser.parameterized.asserts.value.IdentifierValueAssert;
 import org.apache.shardingsphere.parser.parameterized.jaxb.cases.domain.segment.impl.index.ExpectedIndex;
 import org.apache.shardingsphere.sql.parser.sql.common.segment.ddl.index.IndexSegment;

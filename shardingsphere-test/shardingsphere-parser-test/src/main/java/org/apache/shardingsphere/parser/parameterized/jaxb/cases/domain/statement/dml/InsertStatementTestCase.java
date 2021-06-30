@@ -20,6 +20,7 @@ package org.apache.shardingsphere.parser.parameterized.jaxb.cases.domain.stateme
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.shardingsphere.parser.parameterized.jaxb.cases.domain.segment.impl.insert.ExpectedInsertColumnsClause;
+import org.apache.shardingsphere.parser.parameterized.jaxb.cases.domain.segment.impl.insert.ExpectedInsertMultiTableElement;
 import org.apache.shardingsphere.parser.parameterized.jaxb.cases.domain.segment.impl.insert.ExpectedInsertValuesClause;
 import org.apache.shardingsphere.parser.parameterized.jaxb.cases.domain.segment.impl.insert.ExpectedOnDuplicateKeyColumns;
 import org.apache.shardingsphere.parser.parameterized.jaxb.cases.domain.segment.impl.output.ExpectedOutputClause;

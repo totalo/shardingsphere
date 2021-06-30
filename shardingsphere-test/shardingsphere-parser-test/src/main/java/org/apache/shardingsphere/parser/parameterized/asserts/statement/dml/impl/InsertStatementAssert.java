@@ -21,6 +21,7 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.apache.shardingsphere.parser.parameterized.asserts.SQLCaseAssertContext;
 import org.apache.shardingsphere.parser.parameterized.asserts.segment.insert.InsertColumnsClauseAssert;
+import org.apache.shardingsphere.parser.parameterized.asserts.segment.insert.InsertMultiTableElementAssert;
 import org.apache.shardingsphere.parser.parameterized.asserts.segment.insert.InsertValuesClauseAssert;
 import org.apache.shardingsphere.parser.parameterized.asserts.segment.insert.OnDuplicateKeyColumnsAssert;
 import org.apache.shardingsphere.parser.parameterized.asserts.segment.output.OutputClauseAssert;
