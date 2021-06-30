@@ -32,7 +32,7 @@ import org.apache.shardingsphere.sql.parser.sql.dialect.statement.oracle.ddl.Ora
 public final class AnalyzeStatementAssert {
     
     /**
-     * Assert truncate statement is correct with expected parser result.
+     * Assert analyze statement is correct with expected parser result.
      * 
      * @param assertContext assert context
      * @param actual actual analyze statement

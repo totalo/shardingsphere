@@ -25,7 +25,9 @@ import org.apache.shardingsphere.parser.parameterized.asserts.value.IdentifierVa
 import org.apache.shardingsphere.parser.parameterized.jaxb.cases.domain.segment.impl.index.ExpectedIndex;
 import org.apache.shardingsphere.sql.parser.sql.common.segment.ddl.index.IndexSegment;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Index assert.
@@ -34,7 +36,7 @@ import static org.junit.Assert.assertNotNull;
 public final class IndexAssert {
     
     /**
-     * Assert actual column segment is correct with expected column.
+     * Assert actual index segment is correct with expected index.
      *
      * @param assertContext assert context
      * @param actual actual index segment
@@ -43,6 +45,12 @@ public final class IndexAssert {
     public static void assertIs(final SQLCaseAssertContext assertContext, final IndexSegment actual, final ExpectedIndex expected) {
         assertNotNull(assertContext.getText("Index should exist."), expected);
         IdentifierValueAssert.assertIs(assertContext, actual.getIdentifier(), expected, "Index");
+        if (null != expected.getOwner()) {
+            assertTrue(assertContext.getText("Actual owner should exist."), actual.getOwner().isPresent());
+            OwnerAssert.assertIs(assertContext, actual.getOwner().get(), expected.getOwner());
+        } else {
+            assertFalse(assertContext.getText("Actual owner should not exist."), actual.getOwner().isPresent());
+        }
         SQLSegmentAssert.assertIs(assertContext, actual, expected);
     }
 }

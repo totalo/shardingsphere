@@ -346,6 +346,9 @@ public final class SQLParserTestCases {
     
     @XmlElement(name = "analyze")
     private final List<AnalyzeStatementTestCase> analyzeTestCase = new LinkedList<>();
+
+    @XmlElement(name = "associate-statistics")
+    private final List<AssociateStatisticsStatementTestCase> associateStatisticsTestCase = new LinkedList<>();
     
     @XmlElement(name = "add-resource")
     private final List<AddResourceStatementTestCase> addResourceTestCase = new LinkedList<>();
@@ -506,6 +509,7 @@ public final class SQLParserTestCases {
         putAll(alterSequenceTestCase, result);
         putAll(dropSequenceTestCase, result);
         putAll(analyzeTestCase, result);
+        putAll(associateStatisticsTestCase, result);
         putAll(addResourceTestCase, result);
         putAll(alterDataBaseDiscoveryRuleTestCase, result);
         putAll(alterEncryptRuleTestCase, result);

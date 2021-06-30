@@ -60,4 +60,10 @@ public final class InsertStatementTestCase extends SQLParserTestCase {
     
     @XmlElement(name = "output")
     private ExpectedOutputClause outputClause;
+    
+    @XmlElement(name = "multi-table-element")
+    private ExpectedInsertMultiTableElement insertTableElement;
+    
+    @XmlElement(name = "select-subquery")
+    private SelectStatementTestCase selectSubquery;
 }

@@ -18,9 +18,18 @@
 package org.apache.shardingsphere.parser.parameterized.jaxb.cases.domain.segment.impl.index;
 
 import org.apache.shardingsphere.parser.parameterized.jaxb.cases.domain.segment.AbstractExpectedIdentifierSQLSegment;
+import lombok.Getter;
+import lombok.Setter;
+
+import javax.xml.bind.annotation.XmlElement;
 
 /**
  * Expected index.
  */
+@Getter
+@Setter
 public final class ExpectedIndex extends AbstractExpectedIdentifierSQLSegment {
+
+    @XmlElement
+    private ExpectedOwner owner;
 }

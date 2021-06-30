@@ -30,6 +30,8 @@ import org.apache.shardingsphere.parser.parameterized.asserts.segment.with.WithC
 import org.apache.shardingsphere.parser.parameterized.jaxb.cases.domain.statement.dml.InsertStatementTestCase;
 import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.assignment.SetAssignmentSegment;
 import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.column.OnDuplicateKeyColumnsSegment;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.expr.subquery.SubquerySegment;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.generic.InsertMultiTableElementSegment;
 import org.apache.shardingsphere.sql.parser.sql.common.segment.generic.OutputSegment;
 import org.apache.shardingsphere.sql.parser.sql.common.segment.generic.WithSegment;
 import org.apache.shardingsphere.sql.parser.sql.common.statement.dml.InsertStatement;
@@ -38,6 +40,7 @@ import org.apache.shardingsphere.sql.parser.sql.dialect.handler.dml.InsertStatem
 import java.util.Optional;
 
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -62,10 +65,16 @@ public final class InsertStatementAssert {
         assertOnDuplicateKeyColumns(assertContext, actual, expected);
         assertWithClause(assertContext, actual, expected);
         assertOutputClause(assertContext, actual, expected);
+        assertInsertMultiTableElement(assertContext, actual, expected);
+        assertSelectSubqueryClause(assertContext, actual, expected);
     }
     
     private static void assertTable(final SQLCaseAssertContext assertContext, final InsertStatement actual, final InsertStatementTestCase expected) {
-        TableAssert.assertIs(assertContext, actual.getTable(), expected.getTable());
+        if (null != expected.getTable()) {
+            TableAssert.assertIs(assertContext, actual.getTable(), expected.getTable());
+        } else {
+            assertNull(assertContext.getText("Actual table should not exist."), actual.getTable());
+        }
     }
     
     private static void assertInsertColumnsClause(final SQLCaseAssertContext assertContext, final InsertStatement actual, final InsertStatementTestCase expected) {
@@ -132,6 +141,26 @@ public final class InsertStatementAssert {
             OutputClauseAssert.assertIs(assertContext, outputSegment.get(), expected.getOutputClause());
         } else {
             assertFalse(assertContext.getText("Actual output segment should not exist."), outputSegment.isPresent());
+        }
+    }
+    
+    private static void assertInsertMultiTableElement(final SQLCaseAssertContext assertContext, final InsertStatement actual, final InsertStatementTestCase expected) {
+        Optional<InsertMultiTableElementSegment> insertTableElementSegment = InsertStatementHandler.getInsertMultiTableElementSegment(actual);
+        if (null != expected.getInsertTableElement()) {
+            assertTrue(assertContext.getText("Actual insert multi table element segment should exist."), insertTableElementSegment.isPresent());
+            InsertMultiTableElementAssert.assertIs(assertContext, insertTableElementSegment.get(), expected.getInsertTableElement());
+        } else {
+            assertFalse(assertContext.getText("Actual insert multi table element segment should not exist."), insertTableElementSegment.isPresent());
+        }
+    }
+    
+    private static void assertSelectSubqueryClause(final SQLCaseAssertContext assertContext, final InsertStatement actual, final InsertStatementTestCase expected) {
+        Optional<SubquerySegment> selectSubquery = InsertStatementHandler.getSelectSubquery(actual);
+        if (null != expected.getSelectSubquery()) {
+            assertTrue(assertContext.getText("Actual select subquery segment should exist."), selectSubquery.isPresent());
+            SelectStatementAssert.assertIs(assertContext, selectSubquery.get().getSelect(), expected.getSelectSubquery());
+        } else {
+            assertFalse(assertContext.getText("Actual select subquery segment should not exist."), selectSubquery.isPresent());
         }
     }
 }

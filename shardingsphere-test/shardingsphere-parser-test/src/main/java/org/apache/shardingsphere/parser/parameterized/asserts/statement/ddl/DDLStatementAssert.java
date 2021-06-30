@@ -92,6 +92,8 @@ public final class DDLStatementAssert {
             AlterSystemStatementAssert.assertIs(assertContext, (AlterSystemStatement) actual, (AlterSystemStatementTestCase) expected);
         } else if (actual instanceof OracleAnalyzeStatement) {
             AnalyzeStatementAssert.assertIs(assertContext, (OracleAnalyzeStatement) actual, (AnalyzeStatementTestCase) expected);
+        } else if (actual instanceof OracleAssociateStatisticsStatement) {
+            AssociateStatisticsStatementAssert.assertIs(assertContext, (OracleAssociateStatisticsStatement) actual, (AssociateStatisticsStatementTestCase) expected);
         }
     }
 }
