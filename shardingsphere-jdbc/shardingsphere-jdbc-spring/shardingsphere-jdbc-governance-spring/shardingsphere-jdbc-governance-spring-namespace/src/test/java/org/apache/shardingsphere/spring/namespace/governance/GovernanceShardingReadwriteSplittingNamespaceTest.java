@@ -68,6 +68,7 @@ public class GovernanceShardingReadwriteSplittingNamespaceTest extends AbstractJ
         System.out.println("========" + metaDataContexts.getDefaultMetaData().getRuleMetaData().getRules().iterator().next().getClass());
         System.out.println("========" + metaDataContexts.getDefaultMetaData().getRuleMetaData().getRules().size());
         System.out.println("========" + metaDataContexts.getDefaultMetaData().getRuleMetaData().getRules().toArray()[0]);
+        System.out.println("========" + metaDataContexts.getDefaultMetaData().getRuleMetaData().getRules().toArray()[1]);
         return (ShardingRule) metaDataContexts.getDefaultMetaData().getRuleMetaData().getRules().iterator().next();
     }
 }
