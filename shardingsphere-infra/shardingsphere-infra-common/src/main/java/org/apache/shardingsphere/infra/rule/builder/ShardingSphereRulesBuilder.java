@@ -65,9 +65,13 @@ public final class ShardingSphereRulesBuilder {
         Map<RuleConfiguration, SchemaRuleBuilder> builders = OrderedSPIRegistry.getRegisteredServices(schemaRuleConfigurations, SchemaRuleBuilder.class);
         appendDefaultKernelSchemaRuleConfigurationBuilder(builders);
         System.out.println("ShardingSphereRulesBuilder============" + builders.size());
-        System.out.println("ShardingSphereRulesBuilder============" + builders.values());
-        System.out.println("ShardingSphereRulesBuilder============" + builders.values().toArray()[0]);
-        System.out.println("ShardingSphereRulesBuilder============" + builders.values().toArray()[1]);
+        System.out.println("ShardingSphereRulesBuilder============" + builders.values().size());
+        if (builders.values().size() > 0) {
+            System.out.println("ShardingSphereRulesBuilder============" + builders.values().toArray()[0]);
+        }
+        if (builders.values().size() > 0) {
+            System.out.println("ShardingSphereRulesBuilder============" + builders.values().toArray()[1]);
+        }
         return builders.entrySet().stream().map(entry -> entry.getValue().build(schemaName, dataSourceMap, databaseType, entry.getKey())).collect(Collectors.toList());
     }
     
