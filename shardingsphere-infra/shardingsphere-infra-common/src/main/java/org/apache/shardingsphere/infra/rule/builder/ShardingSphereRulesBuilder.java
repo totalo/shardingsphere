@@ -63,20 +63,22 @@ public final class ShardingSphereRulesBuilder {
     public static Collection<ShardingSphereRule> buildSchemaRules(final String schemaName, final Collection<RuleConfiguration> schemaRuleConfigurations,
                                                                   final DatabaseType databaseType, final Map<String, DataSource> dataSourceMap) {
         Map<RuleConfiguration, SchemaRuleBuilder> builders = OrderedSPIRegistry.getRegisteredServices(schemaRuleConfigurations, SchemaRuleBuilder.class);
-        Map<RuleConfiguration, SchemaRuleBuilder> result = appendDefaultKernelSchemaRuleConfigurationBuilder(builders);
-        return result.entrySet().stream().map(entry -> entry.getValue().build(schemaName, dataSourceMap, databaseType, entry.getKey())).collect(Collectors.toList());
+        appendDefaultKernelSchemaRuleConfigurationBuilder(builders);
+        System.out.println("ShardingSphereRulesBuilder============" + builders.size());
+        System.out.println("ShardingSphereRulesBuilder============" + builders.values());
+        System.out.println("ShardingSphereRulesBuilder============" + builders.values().toArray()[0]);
+        System.out.println("ShardingSphereRulesBuilder============" + builders.values().toArray()[1]);
+        return builders.entrySet().stream().map(entry -> entry.getValue().build(schemaName, dataSourceMap, databaseType, entry.getKey())).collect(Collectors.toList());
     }
     
     @SuppressWarnings("rawtypes")
-    private static Map<RuleConfiguration, SchemaRuleBuilder> appendDefaultKernelSchemaRuleConfigurationBuilder(final Map<RuleConfiguration, SchemaRuleBuilder> builders) {
+    private static void appendDefaultKernelSchemaRuleConfigurationBuilder(final Map<RuleConfiguration, SchemaRuleBuilder> builders) {
         Map<SchemaRuleBuilder, DefaultKernelRuleConfigurationBuilder> defaultBuilders = 
                 OrderedSPIRegistry.getRegisteredServices(getMissedKernelSchemaRuleBuilders(builders.values()), DefaultKernelRuleConfigurationBuilder.class);
-        Map<RuleConfiguration, SchemaRuleBuilder> result = new HashMap<>(builders.size(), 1);
-        result.putAll(builders);
+        // TODO consider about order for new put items
         for (Entry<SchemaRuleBuilder, DefaultKernelRuleConfigurationBuilder> entry : defaultBuilders.entrySet()) {
-            result.put(entry.getValue().build(), entry.getKey());
+            builders.put(entry.getValue().build(), entry.getKey());
         }
-        return result;
     }
     
     @SuppressWarnings({"unchecked", "rawtypes"})
