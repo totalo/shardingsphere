@@ -65,7 +65,9 @@ public class GovernanceShardingReadwriteSplittingNamespaceTest extends AbstractJ
     private ShardingRule getShardingRule(final String dataSourceName) {
         GovernanceShardingSphereDataSource shardingSphereDataSource = applicationContext.getBean(dataSourceName, GovernanceShardingSphereDataSource.class);
         MetaDataContexts metaDataContexts = (MetaDataContexts) FieldValueUtil.getFieldValue(shardingSphereDataSource, "metaDataContexts");
-        System.out.println("----------" + metaDataContexts.getDefaultMetaData().getName());
+        System.out.println("========" + metaDataContexts.getDefaultMetaData().getRuleMetaData().getRules().iterator().next().getClass());
+        System.out.println("========" + metaDataContexts.getDefaultMetaData().getRuleMetaData().getRules().size());
+        System.out.println("========" + metaDataContexts.getDefaultMetaData().getRuleMetaData().getRules().toArray()[0]);
         return (ShardingRule) metaDataContexts.getDefaultMetaData().getRuleMetaData().getRules().iterator().next();
     }
 }
