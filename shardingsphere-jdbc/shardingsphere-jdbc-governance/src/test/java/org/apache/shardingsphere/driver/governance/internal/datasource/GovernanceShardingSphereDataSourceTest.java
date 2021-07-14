@@ -88,6 +88,10 @@ public final class GovernanceShardingSphereDataSourceTest {
     @Test
     public void assertRenewRules() throws SQLException {
         metaDataContexts.renew(new RuleConfigurationsChangedEvent(DefaultSchema.LOGIC_NAME, Arrays.asList(getShardingRuleConfiguration(), getReadwriteSplittingRuleConfiguration())));
+        System.out.println("========" + metaDataContexts.getDefaultMetaData().getRuleMetaData().getRules().iterator().next().getClass());
+        System.out.println("========" + metaDataContexts.getDefaultMetaData().getRuleMetaData().getRules().size());
+        System.out.println("========" + metaDataContexts.getDefaultMetaData().getRuleMetaData().getRules().toArray()[0]);
+        System.out.println("========" + metaDataContexts.getDefaultMetaData().getRuleMetaData().getRules().toArray()[1]);
         assertThat(((ShardingRule) metaDataContexts.getDefaultMetaData().getRuleMetaData().getRules().iterator().next()).getTableRules().size(), is(1));
     }
     
