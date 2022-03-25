@@ -47,16 +47,21 @@ public final class BootstrapInitializer {
     
     /**
      * Initialize.
+     * 初始化上下文内容
      *
      * @param yamlConfig YAML proxy configuration
      * @param port proxy port
      * @throws SQLException SQL exception
      */
     public void init(final YamlProxyConfiguration yamlConfig, final int port) throws SQLException {
+        // 运行模式
         ModeConfiguration modeConfig = null == yamlConfig.getServerConfiguration().getMode() ? null : new ModeConfigurationYamlSwapper().swapToObject(yamlConfig.getServerConfiguration().getMode());
+        // 上下文内容 主要是各种规则以及一些数据库的元数据
         ContextManager contextManager = createContextManager(yamlConfig, modeConfig, port);
         ProxyContext.getInstance().init(contextManager);
+        // todo 这个的作用是啥？
         contextManagerInitializedCallback(modeConfig, contextManager);
+        // 设置版本号
         ShardingSphereProxyVersion.setVersion(contextManager);
     }
     

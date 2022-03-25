@@ -41,6 +41,7 @@ import org.apache.shardingsphere.proxy.frontend.protocol.FrontDatabaseProtocolTy
 
 /**
  * ShardingSphere-Proxy.
+ * todo 补充netty相关知识后再进行阅读
  */
 @Slf4j
 public final class ShardingSphereProxy {
@@ -50,6 +51,7 @@ public final class ShardingSphereProxy {
     private EventLoopGroup workerGroup;
     
     /**
+     * proxy 启动的真正的逻辑，主要是netty
      * Start ShardingSphere-Proxy.
      *
      * @param port port

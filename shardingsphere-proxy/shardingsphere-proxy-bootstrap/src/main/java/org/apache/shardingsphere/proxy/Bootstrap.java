@@ -35,6 +35,7 @@ import java.sql.SQLException;
 public final class Bootstrap {
     
     /**
+     * proxy启动入口
      * Main entrance.
      *
      * @param args startup arguments
@@ -42,9 +43,14 @@ public final class Bootstrap {
      * @throws SQLException SQL exception
      */
     public static void main(final String[] args) throws IOException, SQLException {
+        // 获取系统的参数，包括端口号、配置文件的目录，可以指定，也可能是默认
         BootstrapArguments bootstrapArgs = new BootstrapArguments(args);
+        // 加载配置并转化为相关对象
         YamlProxyConfiguration yamlConfig = ProxyConfigurationLoader.load(bootstrapArgs.getConfigurationPath());
+        // 初始化上下文等内容
         new BootstrapInitializer().init(yamlConfig, bootstrapArgs.getPort());
+        
+        // 启动
         new ShardingSphereProxy().start(bootstrapArgs.getPort());
     }
 }
