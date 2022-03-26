@@ -15,23 +15,17 @@
  * limitations under the License.
  */
 
-package org.apache.shardingsphere.sql.parser.core;
+package org.apache.shardingsphere.sql.parser.sql.common.statement.dml;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import org.antlr.v4.runtime.Token;
-import org.antlr.v4.runtime.tree.ParseTree;
+import org.junit.Test;
 
-import java.util.Collection;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
 
-/**
- * Parse context.
- */
-@RequiredArgsConstructor
-@Getter
-public final class ParseContext {
+public final class EmptyStatementTest {
     
-    private final ParseTree parseTree;
-    
-    private final Collection<Token> hiddenTokens;
+    @Test
+    public void assertGetParameterCount() {
+        assertThat(new EmptyStatement().getParameterCount(), is(0));
+    }
 }

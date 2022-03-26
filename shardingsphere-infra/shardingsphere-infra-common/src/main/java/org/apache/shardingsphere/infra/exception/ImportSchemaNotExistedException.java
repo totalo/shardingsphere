@@ -15,18 +15,20 @@
  * limitations under the License.
  */
 
-package org.apache.shardingsphere.proxy.frontend.constant;
+package org.apache.shardingsphere.infra.exception;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
+import org.apache.shardingsphere.infra.distsql.exception.DistSQLException;
 
 /**
- * MDC constants.
+ * Import schema does not exist exception.
  */
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class MDCConstants {
+@Getter
+public final class ImportSchemaNotExistedException extends DistSQLException {
     
-    public static final String SCHEMA_KEY = "schema";
+    private static final long serialVersionUID = 4803138422791056535L;
     
-    public static final String USER_KEY = "user";
+    public ImportSchemaNotExistedException(final String fileName) {
+        super(1106, String.format("Property `schemaName` in file `%s` is required.", fileName));
+    }
 }
