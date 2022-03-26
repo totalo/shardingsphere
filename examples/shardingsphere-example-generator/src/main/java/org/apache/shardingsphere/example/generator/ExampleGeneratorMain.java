@@ -17,36 +17,27 @@
 
 package org.apache.shardingsphere.example.generator;
 
-import freemarker.template.Configuration;
 import freemarker.template.TemplateException;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+import org.apache.shardingsphere.example.generator.core.ExampleGeneratorFactory;
 
 import java.io.IOException;
-import java.util.Map;
 
 /**
- * Example generator.
+ * Example generator entrance.
  */
-public interface ExampleGenerator {
-    
-    String OUTPUT_PATH = "./examples/shardingsphere-sample/shardingsphere-example-generator/target/generated-sources"
-            + "/shardingsphere-${product}-sample/${feature?replace(',', '-')}--${framework}--${mode}--${transaction}/";
-    
-    String RESOURCES_PATH = "src/main/resources";
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public final class ExampleGeneratorMain {
     
     /**
-     * Generate file.
+     * Main entrance.
      * 
-     * @param templateConfig template configuration
-     * @param dataModel data model
+     * @param args args
      * @throws IOException IO exception
      * @throws TemplateException template exception
      */
-    void generate(Configuration templateConfig, Map<String, String> dataModel) throws IOException, TemplateException;
-    
-    /**
-     * Get generator type.
-     *
-     * @return generator type
-     */
-    String getType();
+    public static void main(final String[] args) throws IOException, TemplateException {
+        new ExampleGeneratorFactory().generate();
+    }
 }

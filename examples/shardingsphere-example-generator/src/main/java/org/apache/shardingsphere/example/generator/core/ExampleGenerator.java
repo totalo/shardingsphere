@@ -15,28 +15,37 @@
  * limitations under the License.
  */
 
-package org.apache.shardingsphere.example.generator;
+package org.apache.shardingsphere.example.generator.core;
 
+import freemarker.template.Configuration;
 import freemarker.template.TemplateException;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
 
 import java.io.IOException;
+import java.util.Map;
 
 /**
- * Example generator entrance.
+ * Example generator.
  */
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class ExampleGeneratorMain {
+public interface ExampleGenerator {
+    
+    String OUTPUT_PATH = "./examples/shardingsphere-example-generator/target/generated-sources/shardingsphere-${product}-sample/${feature?replace(',', '-')}--${framework}--${mode}--${transaction}/";
+    
+    String RESOURCES_PATH = "src/main/resources";
     
     /**
-     * Main entrance.
+     * Generate file.
      * 
-     * @param args args
+     * @param templateConfig template configuration
+     * @param dataModel data model
      * @throws IOException IO exception
      * @throws TemplateException template exception
      */
-    public static void main(final String[] args) throws IOException, TemplateException {
-        new ExampleGeneratorFactory().generate();
-    }
+    void generate(Configuration templateConfig, Map<String, String> dataModel) throws IOException, TemplateException;
+    
+    /**
+     * Get generator type.
+     *
+     * @return generator type
+     */
+    String getType();
 }
