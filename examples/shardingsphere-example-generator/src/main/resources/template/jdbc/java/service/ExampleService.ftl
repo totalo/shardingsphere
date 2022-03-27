@@ -14,9 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-<#assign package = feature?replace('-', '.')?replace(',', '.') />
+<#assign package = feature?replace('-', '')?replace(',', '.') />
 
-package org.apache.shardingsphere.example.${package}.${framework?replace('-', '.')};
+package org.apache.shardingsphere.example.${package}.${framework?replace('-', '.')}.service;
 
 import org.apache.shardingsphere.example.${package}.${framework?replace('-', '.')}.entity.Address;
 import org.apache.shardingsphere.example.${package}.${framework?replace('-', '.')}.entity.Order;
