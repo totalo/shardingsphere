@@ -19,6 +19,7 @@ package org.apache.shardingsphere.authority.model;
 
 /**
  * Access subject.
+ * 细粒度权限控制
  */
 public interface AccessSubject {
 }

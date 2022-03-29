@@ -52,9 +52,17 @@ import java.util.function.BiPredicate;
 
 /**
  * Authority checker.
+ * 权限校验
  */
 public final class AuthorityChecker implements SQLChecker<AuthorityRule> {
-    
+
+    /**
+     * 针对用户检查权限是否存在
+     * @param schemaName schema name 数据库
+     * @param grantee grantee 用户
+     * @param authorityRule 认证规则
+     * @return
+     */
     @Override
     public boolean check(final String schemaName, final Grantee grantee, final AuthorityRule authorityRule) {
         if (null == grantee) {
@@ -62,20 +70,37 @@ public final class AuthorityChecker implements SQLChecker<AuthorityRule> {
         }
         return authorityRule.findPrivileges(grantee).map(optional -> optional.hasPrivileges(schemaName)).orElse(false);
     }
-    
+
+    /**
+     * SQL语句级别权限检查
+     * @param sqlStatement SQL statement sql语句
+     * @param parameters SQL parameters sql的参数
+     * @param grantee grantee sql执行人
+     * @param currentSchema current schema 当前的数据库
+     * @param metaDataMap meta data map 元数据信息
+     * @param authorityRule 认证规则
+     * @return
+     */
     @Override
     public SQLCheckResult check(final SQLStatement sqlStatement, final List<Object> parameters, final Grantee grantee, 
                                 final String currentSchema, final Map<String, ShardingSphereMetaData> metaDataMap, final AuthorityRule authorityRule) {
+        // 没有用户，直接放行
         if (null == grantee) {
             return new SQLCheckResult(true, "");
         }
+        
+        // 根据用户查询权限
         Optional<ShardingSpherePrivileges> privileges = authorityRule.findPrivileges(grantee);
         if (!privileges.isPresent()) {
             return new SQLCheckResult(false, String.format("Access denied for user '%s'@'%s'", grantee.getUsername(), grantee.getHostname()));
         }
+        
+        // 判断当前用户是否有当前数据库的权限
         if (null != currentSchema && !privileges.filter(optional -> optional.hasPrivileges(currentSchema)).isPresent()) {
             return new SQLCheckResult(false, String.format("Unknown database '%s'", currentSchema));
         }
+        
+        // 获取当前sql执行需要的权限类型
         PrivilegeType privilegeType = getPrivilege(sqlStatement);
         String errorMessage = Objects.isNull(privilegeType) ? "" : String.format("Access denied for operation %s", privilegeType.name());
         return privileges.map(optional -> new SQLCheckResult(optional.hasPrivileges(Collections.singletonList(privilegeType)), errorMessage)).orElseGet(() -> new SQLCheckResult(false, ""));

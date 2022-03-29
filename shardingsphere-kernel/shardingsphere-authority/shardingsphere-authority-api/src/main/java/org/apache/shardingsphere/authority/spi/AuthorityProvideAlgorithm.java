@@ -29,6 +29,7 @@ import java.util.Optional;
 
 /**
  * Authority provide algorithm.
+ * 权限提供检查
 */
 public interface AuthorityProvideAlgorithm extends ShardingSphereAlgorithm {
     

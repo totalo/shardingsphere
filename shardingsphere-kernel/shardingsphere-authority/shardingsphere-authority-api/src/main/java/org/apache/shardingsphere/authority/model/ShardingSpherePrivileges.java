@@ -21,6 +21,7 @@ import java.util.Collection;
 
 /**
  * ShardingSphere Privileges.
+ * shardingsphere 权限接口
  */
 public interface ShardingSpherePrivileges {
     

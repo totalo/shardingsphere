@@ -27,6 +27,7 @@ import java.util.Collection;
 
 /**
  * Authority rule configuration.
+ * 用户权限配置
  */
 @RequiredArgsConstructor
 @Getter
