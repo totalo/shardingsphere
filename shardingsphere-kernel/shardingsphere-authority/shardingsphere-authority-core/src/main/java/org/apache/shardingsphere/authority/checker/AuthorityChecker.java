@@ -55,9 +55,10 @@ import java.util.function.BiPredicate;
  * 权限校验
  */
 public final class AuthorityChecker implements SQLChecker<AuthorityRule> {
-
+    
     /**
-     * 针对用户检查权限是否存在
+     * 针对用户检查权限是否存在.
+     *
      * @param schemaName schema name 数据库
      * @param grantee grantee 用户
      * @param authorityRule 认证规则
@@ -70,9 +71,10 @@ public final class AuthorityChecker implements SQLChecker<AuthorityRule> {
         }
         return authorityRule.findPrivileges(grantee).map(optional -> optional.hasPrivileges(schemaName)).orElse(false);
     }
-
+    
     /**
-     * SQL语句级别权限检查
+     * SQL语句级别权限检查.
+     *
      * @param sqlStatement SQL statement sql语句
      * @param parameters SQL parameters sql的参数
      * @param grantee grantee sql执行人
@@ -130,7 +132,7 @@ public final class AuthorityChecker implements SQLChecker<AuthorityRule> {
         // TODO add more Privilege and SQL statement mapping
         return null;
     }
-
+    
     private PrivilegeType getDMLPrivilege(final SQLStatement sqlStatement) {
         if (sqlStatement instanceof SelectStatement) {
             return PrivilegeType.SELECT;
@@ -146,7 +148,7 @@ public final class AuthorityChecker implements SQLChecker<AuthorityRule> {
         }
         return null;
     }
-
+    
     private PrivilegeType getDDLPrivilege(final SQLStatement sqlStatement) {
         if (sqlStatement instanceof AlterDatabaseStatement) {
             return PrivilegeType.ALTER_ANY_DATABASE;
