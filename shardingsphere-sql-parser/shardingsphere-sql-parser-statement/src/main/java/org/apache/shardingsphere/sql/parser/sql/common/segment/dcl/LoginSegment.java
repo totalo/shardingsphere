@@ -15,32 +15,23 @@
  * limitations under the License.
  */
 
-package org.apache.shardingsphere.data.pipeline.api.job;
+package org.apache.shardingsphere.sql.parser.sql.common.segment.dcl;
 
 import lombok.Getter;
-import lombok.NonNull;
-import lombok.Setter;
-import lombok.ToString;
-
-import java.util.List;
+import lombok.RequiredArgsConstructor;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.SQLSegment;
+import org.apache.shardingsphere.sql.parser.sql.common.value.identifier.IdentifierValue;
 
 /**
- * Abstract job id.
+ * Login segment.
  */
+@RequiredArgsConstructor
 @Getter
-@Setter
-@ToString
-public abstract class AbstractJobId implements JobId {
+public final class LoginSegment implements SQLSegment {
     
-    @NonNull
-    private String type;
+    private final int startIndex;
     
-    @NonNull
-    private String formatVersion;
+    private final int stopIndex;
     
-    @NonNull
-    private List<String> subTypes;
-    
-    @NonNull
-    private String schemaName;
+    private final IdentifierValue loginName;
 }

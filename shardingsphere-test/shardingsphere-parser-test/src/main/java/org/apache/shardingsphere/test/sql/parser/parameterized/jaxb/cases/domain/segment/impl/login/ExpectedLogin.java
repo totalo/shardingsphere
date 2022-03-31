@@ -15,32 +15,16 @@
  * limitations under the License.
  */
 
-package org.apache.shardingsphere.data.pipeline.api.job;
+package org.apache.shardingsphere.test.sql.parser.parameterized.jaxb.cases.domain.segment.impl.login;
 
 import lombok.Getter;
-import lombok.NonNull;
 import lombok.Setter;
-import lombok.ToString;
-
-import java.util.List;
+import org.apache.shardingsphere.test.sql.parser.parameterized.jaxb.cases.domain.segment.AbstractExpectedIdentifierSQLSegment;
 
 /**
- * Abstract job id.
+ * Expected login.
  */
 @Getter
 @Setter
-@ToString
-public abstract class AbstractJobId implements JobId {
-    
-    @NonNull
-    private String type;
-    
-    @NonNull
-    private String formatVersion;
-    
-    @NonNull
-    private List<String> subTypes;
-    
-    @NonNull
-    private String schemaName;
+public final class ExpectedLogin extends AbstractExpectedIdentifierSQLSegment {
 }

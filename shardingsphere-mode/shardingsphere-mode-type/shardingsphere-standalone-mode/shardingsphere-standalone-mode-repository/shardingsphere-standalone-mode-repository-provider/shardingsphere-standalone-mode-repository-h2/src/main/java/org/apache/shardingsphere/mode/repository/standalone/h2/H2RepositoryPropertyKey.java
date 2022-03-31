@@ -15,32 +15,28 @@
  * limitations under the License.
  */
 
-package org.apache.shardingsphere.data.pipeline.api.job;
+package org.apache.shardingsphere.mode.repository.standalone.h2;
 
 import lombok.Getter;
-import lombok.NonNull;
-import lombok.Setter;
-import lombok.ToString;
-
-import java.util.List;
+import lombok.RequiredArgsConstructor;
+import org.apache.shardingsphere.infra.properties.TypedPropertyKey;
 
 /**
- * Abstract job id.
+ * H2 repository property key.
  */
+@RequiredArgsConstructor
 @Getter
-@Setter
-@ToString
-public abstract class AbstractJobId implements JobId {
+public enum H2RepositoryPropertyKey implements TypedPropertyKey {
     
-    @NonNull
-    private String type;
+    JDBC_URL("jdbc_url", "", String.class),
     
-    @NonNull
-    private String formatVersion;
+    USER("user", "", String.class),
     
-    @NonNull
-    private List<String> subTypes;
+    PASSWORD("password", "", String.class);
     
-    @NonNull
-    private String schemaName;
+    private final String key;
+    
+    private final String defaultValue;
+    
+    private final Class<?> type;
 }
