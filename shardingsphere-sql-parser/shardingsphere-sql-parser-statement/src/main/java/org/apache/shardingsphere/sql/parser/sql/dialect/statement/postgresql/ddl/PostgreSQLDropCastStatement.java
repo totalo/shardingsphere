@@ -15,38 +15,15 @@
  * limitations under the License.
  */
 
-package org.apache.shardingsphere.mode.lock;
+package org.apache.shardingsphere.sql.parser.sql.dialect.statement.postgresql.ddl;
 
-import org.apache.shardingsphere.infra.lock.ShardingSphereLock;
-
-import java.util.Optional;
+import lombok.ToString;
+import org.apache.shardingsphere.sql.parser.sql.common.statement.ddl.DropCastStatement;
+import org.apache.shardingsphere.sql.parser.sql.dialect.statement.postgresql.PostgreSQLStatement;
 
 /**
- * Lock context.
+ * PostgreSQL drop cast statement.
  */
-public interface LockContext {
-    
-    /**
-     * Get or create schema lock.
-     *
-     * @param schemaName schema name
-     * @return schema lock
-     */
-    ShardingSphereLock getOrCreateSchemaLock(String schemaName);
-    
-    /**
-     * Get schema lock.
-     *
-     * @param schemaName schema name
-     * @return schema lock
-     */
-    Optional<ShardingSphereLock> getSchemaLock(String schemaName);
-    
-    /**
-     *  Is locked schema.
-     *
-     * @param schemaName schema name
-     * @return is locked schema or not
-     */
-    boolean isLockedSchema(String schemaName);
+@ToString
+public final class PostgreSQLDropCastStatement extends DropCastStatement implements PostgreSQLStatement {
 }
