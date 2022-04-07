@@ -19,13 +19,14 @@ package org.apache.shardingsphere.mode.manager.cluster.coordinator.lock.event;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.apache.shardingsphere.mode.manager.cluster.coordinator.registry.GovernanceEvent;
 
 /**
- * Inner lock released event.
+ * Ack locked event.
  */
 @RequiredArgsConstructor
 @Getter
-public final class InnerLockReleasedEvent {
+public final class AckLockedEvent implements GovernanceEvent {
     
     private final String lockName;
 }

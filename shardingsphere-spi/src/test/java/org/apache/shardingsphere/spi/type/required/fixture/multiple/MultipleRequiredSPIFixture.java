@@ -15,20 +15,9 @@
  * limitations under the License.
  */
 
-package org.apache.shardingsphere.mode.manager.cluster.coordinator.lock.event;
+package org.apache.shardingsphere.spi.type.required.fixture.multiple;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import org.apache.shardingsphere.mode.manager.cluster.coordinator.registry.GovernanceEvent;
+import org.apache.shardingsphere.spi.type.required.RequiredSPI;
 
-/**
- * Ack released Lock event.
- */
-@RequiredArgsConstructor
-@Getter
-public final class GlobalAckLockReleasedEvent implements GovernanceEvent {
-    
-    private final String schema;
-    
-    private final String lockedInstanceId;
+public interface MultipleRequiredSPIFixture extends RequiredSPI {
 }

@@ -15,13 +15,18 @@
  * limitations under the License.
  */
 
-package org.apache.shardingsphere.spi.type.required.fixture;
+package org.apache.shardingsphere.mode.manager.cluster.coordinator.lock.event;
 
-public final class RequiredSPIFixtureDefaultTrueImpl implements RequiredSPIFixture {
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import org.apache.shardingsphere.mode.manager.cluster.coordinator.registry.GovernanceEvent;
+
+/**
+ * Ack released Lock event.
+ */
+@RequiredArgsConstructor
+@Getter
+public final class AckLockReleasedEvent implements GovernanceEvent {
     
-    @Override
-    public boolean isDefault() {
-        return true;
-    }
+    private final String lockName;
 }
-

@@ -15,20 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shardingsphere.mode.manager.cluster.coordinator.lock.event;
+package org.apache.shardingsphere.spi.type.required.fixture.single;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import org.apache.shardingsphere.mode.manager.cluster.coordinator.registry.GovernanceEvent;
-
-/**
- * Locked event.
- */
-@RequiredArgsConstructor
-@Getter
-public final class GlobalLockedEvent implements GovernanceEvent {
-    
-    private final String schema;
-    
-    private final String ownerInstanceId;
+public final class SingleRequiredSPIFixtureImpl implements SingleRequiredSPIFixture {
 }

@@ -15,9 +15,18 @@
  * limitations under the License.
  */
 
-package org.apache.shardingsphere.spi.type.required.fixture;
+package org.apache.shardingsphere.mode.manager.cluster.coordinator.lock.event;
 
-import org.apache.shardingsphere.spi.type.required.RequiredSPI;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import org.apache.shardingsphere.mode.manager.cluster.coordinator.registry.GovernanceEvent;
 
-public interface RequiredSPIFixture extends RequiredSPI {
+/**
+ * Locked event.
+ */
+@RequiredArgsConstructor
+@Getter
+public final class LockedEvent implements GovernanceEvent {
+    
+    private final String lockName;
 }

@@ -15,37 +15,37 @@
  * limitations under the License.
  */
 
-package org.apache.shardingsphere.mode.manager.cluster.coordinator.lock.util;
+package org.apache.shardingsphere.infra.datasource.registry;
 
 import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-/**
- * Lock node util.
- */
+import javax.sql.DataSource;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class LockNodeUtil {
-    
-    private static final String LOCK_DELIMITER = "-";
-    
+@Setter
+@Getter
+public final class GlobalDataSourceRegistry {
+
+    private static final GlobalDataSourceRegistry INSTANCE = new GlobalDataSourceRegistry();
+
+    private volatile Map<Instance, DataSource> dataSourceCache = new LinkedHashMap<>();
+
+    private volatile Map<String, String> dataSourceSchema = new LinkedHashMap<>();
+
+    private boolean dataSourceAggregationEnabled;
+
     /**
-     * Generate schema lock name.
+     * Get global data source.
      *
-     * @param schema schema name
-     * @param instanceId instance id
-     * @return lock name
+     * @return instance of ShardingSphere global data source.
      */
-    public static String generateSchemaLockName(final String schema, final String instanceId) {
-        return schema + LOCK_DELIMITER + instanceId;
+    public static GlobalDataSourceRegistry getInstance() {
+        return INSTANCE;
     }
-    
-    /**
-     * Parse schema lock name.
-     *
-     * @param lockedName locked name
-     * @return string array of schema name and instance id
-     */
-    public static String[] parseSchemaLockName(final String lockedName) {
-        return lockedName.trim().split(LOCK_DELIMITER);
-    }
+
 }

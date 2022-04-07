@@ -15,22 +15,9 @@
  * limitations under the License.
  */
 
-package org.apache.shardingsphere.mode.manager.cluster.coordinator.lock.watcher;
+package org.apache.shardingsphere.spi.type.required.fixture.empty;
 
-import org.apache.shardingsphere.mode.manager.cluster.coordinator.registry.GovernanceEvent;
-import org.apache.shardingsphere.mode.repository.cluster.listener.DataChangedEvent;
-import org.apache.shardingsphere.mode.repository.cluster.listener.DataChangedEvent.Type;
-import org.junit.Test;
+import org.apache.shardingsphere.spi.type.required.RequiredSPI;
 
-import java.util.Optional;
-
-import static org.junit.Assert.assertFalse;
-
-public final class LockChangedWatcherTest {
-    
-    @Test
-    public void assertCreateEventWithInvalidPath() {
-        Optional<GovernanceEvent> actual = new LockChangedWatcher().createGovernanceEvent(new DataChangedEvent("/lock/glock", "", Type.ADDED));
-        assertFalse(actual.isPresent());
-    }
+public interface EmptyRequiredSPIFixture extends RequiredSPI {
 }

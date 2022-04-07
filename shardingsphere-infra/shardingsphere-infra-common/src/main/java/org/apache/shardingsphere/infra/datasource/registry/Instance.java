@@ -15,18 +15,24 @@
  * limitations under the License.
  */
 
-package org.apache.shardingsphere.mode.manager.cluster.coordinator.lock.event;
+package org.apache.shardingsphere.infra.datasource.registry;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.apache.shardingsphere.mode.manager.cluster.coordinator.registry.GovernanceEvent;
+
 
 /**
- * Lock notification event.
+ * instance.
  */
 @RequiredArgsConstructor
 @Getter
-public final class LockNotificationEvent implements GovernanceEvent {
-    
-    private final String lockName;
+@EqualsAndHashCode
+public final class Instance {
+
+    private final String ip;
+
+    private final Integer port;
+
 }
+
