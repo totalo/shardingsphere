@@ -17,6 +17,7 @@
 
 package org.apache.shardingsphere.spi.type.singleton;
 
+import org.apache.shardingsphere.spi.ShardingSphereServiceLoader;
 import org.apache.shardingsphere.spi.type.singleton.fixture.SingletonSPIFixture;
 import org.junit.Test;
 
@@ -28,17 +29,14 @@ import static org.junit.Assert.assertTrue;
 
 public final class SingletonSPIRegistryTest {
     
+    static {
+        ShardingSphereServiceLoader.register(SingletonSPIFixture.class);
+    }
+    
     @Test
     public void assertGetSingletonInstancesMap() {
         Map<String, SingletonSPIFixture> singletonSPIFixtureMap = SingletonSPIRegistry.getSingletonInstancesMap(
                 SingletonSPIFixture.class, SingletonSPIFixture::getType);
-        assertThat(singletonSPIFixtureMap.size(), is(1));
-        assertTrue(singletonSPIFixtureMap.containsKey("SINGLETON_FIXTURE"));
-    }
-    
-    @Test
-    public void assertGetTypedSingletonInstancesMap() {
-        Map<String, SingletonSPIFixture> singletonSPIFixtureMap = SingletonSPIRegistry.getTypedSingletonInstancesMap(SingletonSPIFixture.class);
         assertThat(singletonSPIFixtureMap.size(), is(1));
         assertTrue(singletonSPIFixtureMap.containsKey("SINGLETON_FIXTURE"));
     }

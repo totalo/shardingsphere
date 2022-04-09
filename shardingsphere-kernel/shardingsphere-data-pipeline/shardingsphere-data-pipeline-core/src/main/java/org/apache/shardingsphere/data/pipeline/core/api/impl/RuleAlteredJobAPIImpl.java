@@ -55,7 +55,7 @@ import org.apache.shardingsphere.infra.yaml.engine.YamlEngine;
 import org.apache.shardingsphere.mode.manager.cluster.coordinator.registry.config.event.rule.ScalingTaskFinishedEvent;
 import org.apache.shardingsphere.scaling.core.job.check.EnvironmentCheckerFactory;
 import org.apache.shardingsphere.scaling.core.job.environment.ScalingEnvironmentManager;
-import org.apache.shardingsphere.spi.type.singleton.SingletonSPIRegistry;
+import org.apache.shardingsphere.spi.ShardingSphereServiceLoader;
 
 import java.sql.SQLException;
 import java.time.LocalDateTime;
@@ -67,7 +67,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Properties;
-import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -76,8 +75,9 @@ import java.util.stream.Stream;
 @Slf4j
 public final class RuleAlteredJobAPIImpl extends AbstractPipelineJobAPIImpl implements RuleAlteredJobAPI {
     
-    private static final Map<String, DataConsistencyCheckAlgorithm> DATA_CONSISTENCY_CHECK_ALGORITHM_MAP = new TreeMap<>(
-            SingletonSPIRegistry.getTypedSingletonInstancesMap(DataConsistencyCheckAlgorithm.class));
+    static {
+        ShardingSphereServiceLoader.register(DataConsistencyCheckAlgorithm.class);
+    }
     
     @Override
     public List<JobInfo> list() {
@@ -238,14 +238,13 @@ public final class RuleAlteredJobAPIImpl extends AbstractPipelineJobAPIImpl impl
     @Override
     public Collection<DataConsistencyCheckAlgorithmInfo> listDataConsistencyCheckAlgorithms() {
         checkModeConfig();
-        return DATA_CONSISTENCY_CHECK_ALGORITHM_MAP.values()
+        return ShardingSphereServiceLoader.getSingletonServiceInstances(DataConsistencyCheckAlgorithm.class)
                 .stream().map(each -> {
-                    DataConsistencyCheckAlgorithmInfo algorithmInfo = new DataConsistencyCheckAlgorithmInfo();
-                    algorithmInfo.setType(each.getType());
-                    algorithmInfo.setDescription(each.getDescription());
-                    algorithmInfo.setSupportedDatabaseTypes(each.getSupportedDatabaseTypes());
-                    algorithmInfo.setProvider(each.getProvider());
-                    return algorithmInfo;
+                    DataConsistencyCheckAlgorithmInfo result = new DataConsistencyCheckAlgorithmInfo();
+                    result.setType(each.getType());
+                    result.setDescription(each.getDescription());
+                    result.setSupportedDatabaseTypes(each.getSupportedDatabaseTypes());
+                    return result;
                 }).collect(Collectors.toList());
     }
     
