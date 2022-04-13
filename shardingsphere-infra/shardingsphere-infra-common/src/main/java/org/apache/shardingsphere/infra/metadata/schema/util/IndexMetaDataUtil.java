@@ -40,6 +40,7 @@ public class IndexMetaDataUtil {
     
     /**
      * Get logic index name.
+     * 根据实际index获取逻辑index名称
      * 
      * @param actualIndexName actual index name
      * @param actualTableName actual table name

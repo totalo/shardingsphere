@@ -39,6 +39,7 @@ public class TableMetaDataUtil {
     
     /**
      * Get table meta data load materials.
+     * 获取元数据加载器
      *
      * @param tableNames table name collection
      * @param materials materials
@@ -49,6 +50,7 @@ public class TableMetaDataUtil {
         Map<String, Collection<String>> dataSourceTableGroups = new LinkedHashMap<>();
         DataNodes dataNodes = new DataNodes(materials.getRules());
         for (String each : tableNames) {
+            // TODO 为啥检查的时候区分添加所有表元数据
             if (checkMetaDataEnable) {
                 addAllActualTableDataNode(materials, dataSourceTableGroups, dataNodes, each);
             } else {

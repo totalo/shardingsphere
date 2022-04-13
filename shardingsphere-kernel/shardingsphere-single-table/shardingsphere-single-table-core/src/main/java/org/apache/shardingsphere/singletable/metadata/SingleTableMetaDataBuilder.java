@@ -40,24 +40,36 @@ import java.util.stream.Collectors;
 
 /**
  * Table meta data builder for single.
+ * 单表的元数据加载
  */
 public final class SingleTableMetaDataBuilder implements RuleBasedTableMetaDataBuilder<SingleTableRule> {
     
     @Override
     public Map<String, TableMetaData> load(final Collection<String> tableNames, final SingleTableRule rule, final SchemaBuilderMaterials materials)
             throws SQLException {
+        // 判断是否存在配置的单表规则
         Collection<String> needLoadTables = tableNames.stream().filter(each -> rule.getTables().contains(each)).collect(Collectors.toSet());
+        
+        // 不存在这个单表规则，直接返回
         if (needLoadTables.isEmpty()) {
             return Collections.emptyMap();
         }
+        
+        // 获取数据加载的相关数据
         Collection<TableMetaDataLoaderMaterial> tableMetaDataLoaderMaterials = TableMetaDataUtil.getTableMetaDataLoadMaterial(needLoadTables, materials, false);
         if (tableMetaDataLoaderMaterials.isEmpty()) {
             return Collections.emptyMap();
         }
+        
+        // 加载数据
         Collection<TableMetaData> tableMetaDataList = TableMetaDataLoaderEngine.load(tableMetaDataLoaderMaterials, materials.getDatabaseType());
+        
+        // 组装成对应表名-表元数据的映射
         return tableMetaDataList.stream().collect(Collectors.toMap(TableMetaData::getName, Function.identity(), (oldValue, currentValue) -> oldValue, LinkedHashMap::new));
     }
     
+    // 装饰元数据信息
+    // TODO 需要看下这个是干嘛的
     @Override
     public Map<String, TableMetaData> decorate(final Map<String, TableMetaData> tableMetaDataMap, final SingleTableRule rule, final SchemaBuilderMaterials materials) {
         Map<String, TableMetaData> result = new LinkedHashMap<>();

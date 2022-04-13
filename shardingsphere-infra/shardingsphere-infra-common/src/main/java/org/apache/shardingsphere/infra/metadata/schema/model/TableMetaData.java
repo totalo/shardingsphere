@@ -36,16 +36,22 @@ import java.util.Map;
 @ToString
 public final class TableMetaData {
     
+    // 表名
     private final String name;
     
+    // 表对应列元数据，key列名称，v为对应的列元数据
     private final Map<String, ColumnMetaData> columns;
     
+    // 索引
     private final Map<String, IndexMetaData> indexes;
     
+    // 约束数据
     private final Map<String, ConstraintMetaData> constrains;
     
+    // 所有的列名
     private final List<String> columnNames = new ArrayList<>();
     
+    // 主建列
     private final List<String> primaryKeyColumns = new ArrayList<>();
     
     public TableMetaData() {

@@ -49,6 +49,7 @@ public final class TableMetaDataLoaderEngine {
     
     /**
      * Load table meta data.
+     * 加载表的元数据
      *
      * @param materials table meta data load material
      * @param databaseType database type
@@ -56,6 +57,7 @@ public final class TableMetaDataLoaderEngine {
      * @throws SQLException SQL exception
      */
     public static Collection<TableMetaData> load(final Collection<TableMetaDataLoaderMaterial> materials, final DatabaseType databaseType) throws SQLException {
+        // 根据数据库类型获取对应的加载器
         Optional<DialectTableMetaDataLoader> dialectTableMetaDataLoader = DialectTableMetaDataLoaderFactory.newInstance(databaseType);
         if (dialectTableMetaDataLoader.isPresent()) {
             try {
@@ -68,6 +70,13 @@ public final class TableMetaDataLoaderEngine {
         return loadByDefault(materials, databaseType);
     }
     
+    /**
+     * 元数据默认加载器
+     * @param materials
+     * @param databaseType
+     * @return
+     * @throws SQLException
+     */
     private static Collection<TableMetaData> loadByDefault(final Collection<TableMetaDataLoaderMaterial> materials, final DatabaseType databaseType) throws SQLException {
         Collection<TableMetaData> result = new LinkedList<>();
         for (TableMetaDataLoaderMaterial each : materials) {
@@ -81,6 +90,7 @@ public final class TableMetaDataLoaderEngine {
     private static Collection<TableMetaData> loadByDialect(final DialectTableMetaDataLoader loader, final Collection<TableMetaDataLoaderMaterial> materials) throws SQLException {
         Collection<TableMetaData> result = new LinkedList<>();
         Collection<Future<Map<String, TableMetaData>>> futures = new LinkedList<>();
+        // 按照不同的数据源进行数据加载
         for (TableMetaDataLoaderMaterial each : materials) {
             futures.add(EXECUTOR_SERVICE.submit(() -> loader.load(each.getDataSource(), each.getTableNames())));
         }

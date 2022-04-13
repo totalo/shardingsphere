@@ -42,6 +42,7 @@ import java.util.stream.Collectors;
 
 /**
  * Single table route engine.
+ * 单表路由引擎
  */
 @RequiredArgsConstructor
 public final class SingleTableRouteEngine {
@@ -57,9 +58,11 @@ public final class SingleTableRouteEngine {
      * @param rule single table rule
      */
     public void route(final RouteContext routeContext, final SingleTableRule rule) {
+        // 为空直接进行路由
         if (routeContext.getRouteUnits().isEmpty() || sqlStatement instanceof SelectStatement) {
             route0(routeContext, rule);
         } else {
+            // 非空直接构建空路由上下文
             RouteContext newRouteContext = new RouteContext();
             route0(newRouteContext, rule);
             combineRouteContext(routeContext, newRouteContext);
@@ -79,6 +82,7 @@ public final class SingleTableRouteEngine {
     }
     
     private void route0(final RouteContext routeContext, final SingleTableRule rule) {
+        // 表DDL语句或者所有的table在同一个数据源
         if (isDDLTableStatement() || rule.isAllTablesInSameDataSource(routeContext, singleTableNames)) {
             Collection<String> existSingleTables = rule.getSingleTableNames(singleTableNames);
             if (!existSingleTables.isEmpty()) {
