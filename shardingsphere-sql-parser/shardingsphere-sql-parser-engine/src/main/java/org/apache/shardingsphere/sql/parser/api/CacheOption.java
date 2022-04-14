@@ -22,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 
 /**
  * Cache option.
+ * 缓存配置参数
  */
 @RequiredArgsConstructor
 @Getter

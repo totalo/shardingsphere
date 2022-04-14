@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
 
 /**
  * SQL visitor engine.
+ * 访问者模式，访问者模式是一种访问者模式，它是一种对象结构型模式，它提供了一种分离对象结构与行为的方法。
  */
 @RequiredArgsConstructor
 public final class SQLVisitorEngine {

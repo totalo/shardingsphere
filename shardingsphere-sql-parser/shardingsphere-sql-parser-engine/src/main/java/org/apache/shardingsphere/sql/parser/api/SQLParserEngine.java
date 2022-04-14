@@ -24,6 +24,7 @@ import org.apache.shardingsphere.sql.parser.core.database.parser.SQLParserExecut
 
 /**
  * SQL parser engine.
+ * 解析引擎
  */
 public final class SQLParserEngine {
     
