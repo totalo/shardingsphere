@@ -19,6 +19,7 @@ package org.apache.shardingsphere.sql.parser.sql.dialect.statement.mysql.segment
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import org.apache.shardingsphere.sql.parser.sql.common.segment.SQLSegment;
 
 /**
@@ -26,9 +27,10 @@ import org.apache.shardingsphere.sql.parser.sql.common.segment.SQLSegment;
  */
 @Getter
 @Setter
+@ToString
 public abstract class ResetOptionSegment implements SQLSegment {
-
+    
     private int startIndex;
-
+    
     private int stopIndex;
 }

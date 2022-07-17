@@ -17,27 +17,23 @@
 
 package org.apache.shardingsphere.infra.database.type.dialect;
 
-import com.google.common.collect.Sets;
 import org.apache.shardingsphere.infra.database.metadata.dialect.MySQLDataSourceMetaData;
 import org.apache.shardingsphere.sql.parser.sql.common.constant.QuoteCharacter;
 import org.junit.Test;
 
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.HashSet;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public final class MySQLDatabaseTypeTest {
     
     @Test
-    public void assertGetName() {
-        assertThat(new MySQLDatabaseType().getName(), is("MySQL"));
+    public void assertGetQuoteCharacter() {
+        assertThat(new MySQLDatabaseType().getQuoteCharacter(), is(QuoteCharacter.BACK_QUOTE));
     }
     
     @Test
@@ -47,26 +43,7 @@ public final class MySQLDatabaseTypeTest {
     
     @Test
     public void assertGetDataSourceMetaData() {
-        assertThat(new MySQLDatabaseType().getDataSourceMetaData("jdbc:mysql://127.0.0.1/ds", "root"), instanceOf(MySQLDataSourceMetaData.class));
-    }
-    
-    @Test
-    public void assertGetSchema() throws SQLException {
-        Connection connection = mock(Connection.class);
-        when(connection.getSchema()).thenReturn("ds");
-        assertThat(new MySQLDatabaseType().getSchema(connection), is("ds"));
-    }
-    
-    @Test
-    public void assertFormatTableNamePattern() {
-        assertThat(new MySQLDatabaseType().formatTableNamePattern("tbl"), is("tbl"));
-    }
-    
-    @Test
-    public void assertGetQuoteCharacter() {
-        QuoteCharacter actual = new MySQLDatabaseType().getQuoteCharacter();
-        assertThat(actual.getStartDelimiter(), is("`"));
-        assertThat(actual.getEndDelimiter(), is("`"));
+        assertThat(new MySQLDatabaseType().getDataSourceMetaData("jdbc:mysql://127.0.0.1/foo_ds", "root"), instanceOf(MySQLDataSourceMetaData.class));
     }
     
     @Test
@@ -79,6 +56,6 @@ public final class MySQLDatabaseTypeTest {
     
     @Test
     public void assertGetSystemSchemas() {
-        assertThat(new MySQLDatabaseType().getSystemSchemas(), is(Sets.newHashSet("information_schema", "performance_schema", "mysql", "sys")));
+        assertThat(new MySQLDatabaseType().getSystemSchemas(), is(new HashSet<>(Arrays.asList("information_schema", "performance_schema", "mysql", "sys"))));
     }
 }

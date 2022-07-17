@@ -29,7 +29,7 @@ import org.apache.shardingsphere.proxy.backend.session.ConnectionSession;
 import org.apache.shardingsphere.proxy.backend.text.admin.executor.DatabaseAdminQueryExecutor;
 import org.apache.shardingsphere.proxy.backend.text.admin.opengauss.schema.OgCatalog;
 import org.apache.shardingsphere.proxy.backend.text.admin.opengauss.schema.OgDatabase;
-import org.apache.shardingsphere.sharding.merge.dql.iterator.IteratorStreamMergedResult;
+import org.apache.shardingsphere.sharding.merge.common.IteratorStreamMergedResult;
 import org.apache.shardingsphere.sql.parser.sql.common.util.SQLUtil;
 
 import java.sql.DriverManager;
@@ -67,16 +67,16 @@ public final class OpenGaussSelectDatabaseExecutor implements DatabaseAdminQuery
             connection.setSchema(PG_CATALOG);
             try (Statement statement = connection.createStatement(); ResultSet resultSet = statement.executeQuery(sql)) {
                 queryResultMetaData = new JDBCQueryResultMetaData(resultSet.getMetaData());
-                mergedResult = new IteratorStreamMergedResult(Collections.singletonList(new JDBCMemoryQueryResult(resultSet)));
+                mergedResult = new IteratorStreamMergedResult(Collections.singletonList(new JDBCMemoryQueryResult(resultSet, connectionSession.getDatabaseType())));
             }
         }
     }
     
     private OgCatalog constructOgCatalog() {
-        Collection<String> allSchemaNames = ProxyContext.getInstance().getAllSchemaNames();
-        OgDatabase[] ogDatabases = new OgDatabase[allSchemaNames.size()];
+        Collection<String> allDatabaseNames = ProxyContext.getInstance().getAllDatabaseNames();
+        OgDatabase[] ogDatabases = new OgDatabase[allDatabaseNames.size()];
         int i = 0;
-        for (String each : allSchemaNames) {
+        for (String each : allDatabaseNames) {
             ogDatabases[i++] = new OgDatabase(each, DAT_COMPATIBILITY);
         }
         return new OgCatalog(ogDatabases);

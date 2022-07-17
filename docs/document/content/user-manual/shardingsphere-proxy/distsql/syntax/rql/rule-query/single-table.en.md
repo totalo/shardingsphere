@@ -6,12 +6,12 @@ weight = 2
 ## Syntax
 
 ```sql
-SHOW SINGLE TABLE (tableRule | RULES) [FROM schemaName]
+SHOW SINGLE TABLE (table | RULES) [FROM databaseName]
 
 SHOW SINGLE TABLES 
 
-tableRule:
-    RULE tableName
+table:
+    TABLE tableName
 ```
 
 ## Return Value Description
@@ -32,10 +32,10 @@ tableRule:
 
 ## Example
 
-*single table rules*
+*SHOW SINGLE TABLES RULES*
 
 ```sql
-sql> show single table rules;
+sql>  SHOW SINGLE TABLES RULES;
 +---------+---------------+
 | name    | resource_name |
 +---------+---------------+
@@ -44,9 +44,22 @@ sql> show single table rules;
 1 row in set (0.01 sec)
 ```
 
-*single tables*
+*SHOW SINGLE TABLE tableName*
+
 ```sql
-mysql> show single tables;
+sql> SHOW SINGLE TABLE t_single_0;
++----------------+---------------+
+| table_name     | resource_name |
++----------------+---------------+
+| t_single_0     | ds_0          |
++----------------+---------------+
+1 row in set (0.01 sec)
+```
+
+*SHOW SINGLE TABLES*
+
+```sql
+mysql> SHOW SINGLE TABLES;
 +--------------+---------------+
 | table_name   | resource_name |
 +--------------+---------------+

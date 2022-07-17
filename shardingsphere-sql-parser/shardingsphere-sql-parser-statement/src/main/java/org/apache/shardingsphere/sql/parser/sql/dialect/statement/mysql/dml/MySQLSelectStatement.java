@@ -32,7 +32,7 @@ import java.util.Optional;
  * MySQL select statement.
  */
 @Setter
-@ToString
+@ToString(callSuper = true)
 public final class MySQLSelectStatement extends SelectStatement implements MySQLStatement {
     
     private SimpleTableSegment table;
@@ -69,7 +69,7 @@ public final class MySQLSelectStatement extends SelectStatement implements MySQL
     public Optional<WindowSegment> getWindow() {
         return Optional.ofNullable(window);
     }
-
+    
     /**
      * Get simple table segment.
      *

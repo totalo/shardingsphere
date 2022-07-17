@@ -334,7 +334,7 @@ ignoredNameIdentifier
     ;
 
 dropUser
-    : DROP USER (IF EXISTS)? userName
+    : DROP USER ifExists? userName
     ;
 
 alterUser
@@ -355,7 +355,7 @@ createRole
     ;
 
 dropRole
-    : DROP ROLE (IF EXISTS)? name
+    : DROP ROLE ifExists? name
     ;
 
 alterRole
@@ -456,4 +456,8 @@ passwordOptionClause
 
 cryptographicCredentialsOptionClause
     : ADD CREDENTIAL identifier | DROP CREDENTIAL identifier
+    ;
+
+revert
+    : REVERT (WITH COOKIE EQ_ variableName)?
     ;

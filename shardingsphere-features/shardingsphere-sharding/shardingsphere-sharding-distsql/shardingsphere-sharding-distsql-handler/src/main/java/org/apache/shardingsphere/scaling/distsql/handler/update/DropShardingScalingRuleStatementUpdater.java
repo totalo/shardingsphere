@@ -20,7 +20,7 @@ package org.apache.shardingsphere.scaling.distsql.handler.update;
 import org.apache.shardingsphere.infra.distsql.exception.DistSQLException;
 import org.apache.shardingsphere.infra.distsql.exception.rule.RequiredRuleMissedException;
 import org.apache.shardingsphere.infra.distsql.update.RuleDefinitionDropUpdater;
-import org.apache.shardingsphere.infra.metadata.ShardingSphereMetaData;
+import org.apache.shardingsphere.infra.metadata.database.ShardingSphereDatabase;
 import org.apache.shardingsphere.scaling.distsql.statement.DropShardingScalingRuleStatement;
 import org.apache.shardingsphere.sharding.api.config.ShardingRuleConfiguration;
 
@@ -30,33 +30,33 @@ import org.apache.shardingsphere.sharding.api.config.ShardingRuleConfiguration;
 public final class DropShardingScalingRuleStatementUpdater implements RuleDefinitionDropUpdater<DropShardingScalingRuleStatement, ShardingRuleConfiguration> {
     
     @Override
-    public void checkSQLStatement(final ShardingSphereMetaData shardingSphereMetaData, final DropShardingScalingRuleStatement sqlStatement,
-                                  final ShardingRuleConfiguration currentRuleConfig) throws DistSQLException {
-        String schemaName = shardingSphereMetaData.getName();
-        if (!isExistRuleConfig(currentRuleConfig) && sqlStatement.isContainsExistClause()) {
+    public void checkSQLStatement(final ShardingSphereDatabase database,
+                                  final DropShardingScalingRuleStatement sqlStatement, final ShardingRuleConfiguration currentRuleConfig) throws DistSQLException {
+        if (!isExistRuleConfig(currentRuleConfig) && sqlStatement.isIfExists()) {
             return;
         }
-        checkCurrentRuleConfiguration(schemaName, currentRuleConfig);
-        checkStatement(schemaName, sqlStatement, currentRuleConfig);
+        String databaseName = database.getName();
+        checkCurrentRuleConfiguration(databaseName, currentRuleConfig);
+        checkStatement(databaseName, sqlStatement, currentRuleConfig);
     }
     
-    private void checkCurrentRuleConfiguration(final String schemaName, final ShardingRuleConfiguration currentRuleConfig) throws RequiredRuleMissedException {
+    private void checkCurrentRuleConfiguration(final String databaseName, final ShardingRuleConfiguration currentRuleConfig) throws RequiredRuleMissedException {
         if (null == currentRuleConfig) {
-            throw new RequiredRuleMissedException("Sharding", schemaName);
+            throw new RequiredRuleMissedException("Sharding", databaseName);
         }
     }
     
-    private void checkStatement(final String schemaName, final DropShardingScalingRuleStatement sqlStatement, final ShardingRuleConfiguration currentRuleConfig) throws DistSQLException {
-        checkExist(schemaName, sqlStatement, currentRuleConfig);
+    private void checkStatement(final String databaseName, final DropShardingScalingRuleStatement sqlStatement, final ShardingRuleConfiguration currentRuleConfig) throws DistSQLException {
+        checkExist(databaseName, sqlStatement, currentRuleConfig);
         // TODO checkNotInUse
     }
     
-    private void checkExist(final String schemaName, final DropShardingScalingRuleStatement sqlStatement, final ShardingRuleConfiguration currentRuleConfig) throws DistSQLException {
-        if (sqlStatement.isContainsExistClause()) {
+    private void checkExist(final String databaseName, final DropShardingScalingRuleStatement sqlStatement, final ShardingRuleConfiguration currentRuleConfig) throws DistSQLException {
+        if (sqlStatement.isIfExists()) {
             return;
         }
         if (!currentRuleConfig.getScaling().containsKey(sqlStatement.getScalingName())) {
-            throw new RequiredRuleMissedException("Scaling", schemaName, sqlStatement.getScalingName());
+            throw new RequiredRuleMissedException("Scaling", databaseName, sqlStatement.getScalingName());
         }
     }
     

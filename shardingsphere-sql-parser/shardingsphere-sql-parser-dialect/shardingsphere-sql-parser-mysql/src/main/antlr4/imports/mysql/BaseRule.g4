@@ -47,6 +47,9 @@ customKeyword
     | INNODB
     | REDO_LOG
     | LAST_VALUE
+    | PRIMARY
+    | MAXVALUE
+    | BIT_XOR
     ;
     
 literals
@@ -1026,8 +1029,8 @@ charFunction
     ;
     
 trimFunction
-    : TRIM LP_ ((LEADING | BOTH | TRAILING) string_? FROM)? string_ RP_
-    | TRIM LP_ (string_ FROM)? string_ RP_
+    : TRIM LP_ ((LEADING | BOTH | TRAILING) expr? FROM)? expr RP_
+    | TRIM LP_ (expr FROM)? expr RP_
     ;
     
 valuesFunction
@@ -1260,11 +1263,11 @@ fieldOrVarSpec
     : LP_ (identifier (COMMA_ identifier)*)? RP_
     ;
     
-notExistClause
+ifNotExists
     : IF NOT EXISTS
     ;
     
-existClause
+ifExists
     : IF EXISTS
     ;
     
@@ -1284,7 +1287,7 @@ conditionName
     : identifier
     ;
     
-unionOption
+combineOption
     : ALL | DISTINCT
     ;
     

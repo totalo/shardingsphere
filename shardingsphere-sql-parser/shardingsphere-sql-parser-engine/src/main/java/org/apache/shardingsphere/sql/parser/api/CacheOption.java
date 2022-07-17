@@ -31,6 +31,4 @@ public final class CacheOption {
     private final int initialCapacity;
     
     private final long maximumSize;
-    
-    private final int concurrencyLevel;
 }

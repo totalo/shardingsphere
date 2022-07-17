@@ -19,8 +19,6 @@ package org.apache.shardingsphere.infra.lock;
 
 import org.apache.shardingsphere.infra.instance.InstanceContext;
 
-import java.util.Optional;
-
 /**
  * Lock context.
  */
@@ -31,29 +29,46 @@ public interface LockContext {
      *
      * @param instanceContext instance context
      */
-    void initLockState(InstanceContext instanceContext);
+    default void initLockState(InstanceContext instanceContext) {
+    }
     
     /**
-     * Get or create schema lock.
+     * Get lock.
      *
-     * @param schemaName schema name
-     * @return schema lock
+     * @param lockScope lock scope
+     * @return lock
      */
-    ShardingSphereLock getOrCreateSchemaLock(String schemaName);
+    ShardingSphereLock getLock(LockScope lockScope);
     
     /**
-     * Get schema lock.
+     * Try lock.
      *
-     * @param schemaName schema name
-     * @return schema lock
+     * @param lockDefinition lock definition
+     * @return is locked or not
      */
-    Optional<ShardingSphereLock> getSchemaLock(String schemaName);
+    boolean tryLock(LockDefinition lockDefinition);
     
     /**
-     *  Is locked schema.
+     * Try Lock.
      *
-     * @param schemaName schema name
-     * @return is locked schema or not
+     * @param lockDefinition lock definition
+     * @param timeoutMilliseconds timeout milliseconds
+     * @return is locked or not
      */
-    boolean isLockedSchema(String schemaName);
+    boolean tryLock(LockDefinition lockDefinition, long timeoutMilliseconds);
+    
+    /**
+     * Release lock.
+     *
+     * @param lockDefinition lock definition
+     */
+    void releaseLock(LockDefinition lockDefinition);
+    
+    /**
+     *  Is locked.
+     *
+     * @param lockDefinition lock definition
+     * @return is locked or not
+     */
+    boolean isLocked(LockDefinition lockDefinition);
 }

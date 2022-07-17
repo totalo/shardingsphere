@@ -68,46 +68,8 @@ public final class ReflectionUtil {
         throw new ClassCastException("field " + fieldName + " is " + value.getClass().getName() + " can cast to " + valueClass.getName());
     }
     
-    /**
-     * Get static field value.
-     *
-     * @param targetClass target class
-     * @param fieldName field name
-     * @param valueClass expected value class
-     * @param <T> expected value class
-     * @return target filed value
-     * @throws NoSuchFieldException no such field exception
-     * @throws IllegalAccessException illegal access exception
-     */
-    @SuppressWarnings("unchecked")
-    public static <T> T getStaticFieldValue(final Class<?> targetClass, final String fieldName, final Class<T> valueClass) throws NoSuchFieldException, IllegalAccessException {
-        Field field = getField(targetClass, fieldName, true);
-        Object value = field.get(null);
-        if (null == value) {
-            return null;
-        }
-        if (valueClass.isAssignableFrom(value.getClass())) {
-            return (T) value;
-        }
-        throw new ClassCastException("field " + fieldName + " is " + value.getClass().getName() + " can cast to " + valueClass.getName());
-    }
-    
-    /**
-     * Get field from class.
-     *
-     * @param targetClass target class
-     * @param fieldName field name
-     * @param isDeclared is declared
-     * @return {@link Field}
-     * @throws NoSuchFieldException no such field exception
-     */
-    public static Field getField(final Class<?> targetClass, final String fieldName, final boolean isDeclared) throws NoSuchFieldException {
-        Field result;
-        if (isDeclared) {
-            result = targetClass.getDeclaredField(fieldName);
-        } else {
-            result = targetClass.getField(fieldName);
-        }
+    private static Field getField(final Class<?> targetClass, final String fieldName, final boolean isDeclared) throws NoSuchFieldException {
+        Field result = isDeclared ? targetClass.getDeclaredField(fieldName) : targetClass.getField(fieldName);
         result.setAccessible(true);
         return result;
     }
@@ -119,14 +81,15 @@ public final class ReflectionUtil {
      * @param methodName method name
      * @param parameterTypes parameter types
      * @param parameterValues parameter values
+     * @return invoke method result.
      * @throws NoSuchMethodException no such field exception
      * @throws InvocationTargetException invocation target exception
      * @throws IllegalAccessException illegal access exception
      */
-    public static void invokeMethod(final Object target, final String methodName, final Class<?>[] parameterTypes, final Object[] parameterValues)
-            throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    public static Object invokeMethod(final Object target, final String methodName, final Class<?>[] parameterTypes,
+                                      final Object[] parameterValues) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         Method method = target.getClass().getDeclaredMethod(methodName, parameterTypes);
         method.setAccessible(true);
-        method.invoke(target, parameterValues);
+        return method.invoke(target, parameterValues);
     }
 }

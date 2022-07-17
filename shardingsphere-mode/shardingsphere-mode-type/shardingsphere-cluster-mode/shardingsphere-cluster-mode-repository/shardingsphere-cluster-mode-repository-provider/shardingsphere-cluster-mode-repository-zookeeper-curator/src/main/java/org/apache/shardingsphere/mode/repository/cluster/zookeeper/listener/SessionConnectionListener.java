@@ -57,9 +57,8 @@ public final class SessionConnectionListener implements ConnectionStateListener 
     private boolean reRegister(final CuratorFramework client) {
         try {
             if (client.getZookeeperClient().blockUntilConnectedOrTimedOut()) {
-                instanceContext.initLockContext();
                 repository.persistEphemeral(ComputeNode.getOnlineInstanceNodePath(instanceContext.getInstance().getCurrentInstanceId(),
-                        instanceContext.getInstance().getInstanceDefinition().getInstanceType()), "");
+                        instanceContext.getInstance().getMetaData().getType()), instanceContext.getInstance().getMetaData().getAttributes());
                 return true;
             }
             sleepInterval();

@@ -47,7 +47,7 @@ SELECT i.* FROM t_order_0 o JOIN t_order_item_0 i ON o.order_id=i.order_id WHERE
 SELECT i.* FROM t_order_1 o JOIN t_order_item_1 i ON o.order_id=i.order_id WHERE o.order_id in (10, 11);
 ```
 
-In them, since table `t_order` specifies sharding conditions， it will be taken by ShardingSphere as the primary table of query. 
+In them, since table `t_order` specifies sharding conditions, it will be taken by ShardingSphere as the primary table of query. 
 All the route computations will only use the sharding strategy of the primary table, so sharding computation of `t_order_item` table will use the conditions of `t_order`.
 
 ## Broadcast Table
@@ -60,3 +60,4 @@ It can be applied to the small data volume that needs to correlate with big data
 
 It refers to only one table that exists in all sharding database sources. 
 It is suitable for little data in table without sharding.
+Users need to ensure that single table is unique. If single table is repeated under the same schema in the same database, ShardingSphere will only load the first single table for sql route.

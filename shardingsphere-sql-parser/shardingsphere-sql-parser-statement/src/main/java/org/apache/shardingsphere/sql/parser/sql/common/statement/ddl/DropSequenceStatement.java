@@ -27,10 +27,10 @@ import java.util.Collection;
 /**
  * Drop sequence statement.
  */
-@ToString
 @Getter
 @Setter
+@ToString(callSuper = true)
 public abstract class DropSequenceStatement extends AbstractSQLStatement implements DDLStatement {
-
+    
     private Collection<String> sequenceNames;
 }

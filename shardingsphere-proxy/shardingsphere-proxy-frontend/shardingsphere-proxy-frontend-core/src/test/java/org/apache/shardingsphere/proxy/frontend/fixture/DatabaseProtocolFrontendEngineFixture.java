@@ -51,11 +51,11 @@ public final class DatabaseProtocolFrontendEngineFixture implements DatabaseProt
     }
     
     @Override
-    public void handleException(final ConnectionSession connectionSession) {
+    public void handleException(final ConnectionSession connectionSession, final Exception exception) {
     }
     
     @Override
     public String getType() {
-        return new FixtureDatabaseType().getName();
+        return new FixtureDatabaseType().getType();
     }
 }

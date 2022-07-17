@@ -28,6 +28,7 @@ execute
     | alterTable
     | dropTable
     | truncateTable
+    | lockTable
     | createIndex
     | dropIndex
     | alterIndex
@@ -72,5 +73,48 @@ execute
     | dropView
     | dropTrigger
     | alterView
+    | alterTrigger
+    | createEdition
+    | alterDatabaseLink
+    | alterDatabaseDictionary
+    | createSynonym
+    | createDirectory
+    | dropSynonym
+    | dropPackage
+    | dropEdition
+    | dropOutline
+    | alterOutline
+    | alterAnalyticView
+    | alterAttributeDimension
+    | createSequence
+    | alterSequence
+    | alterPackage
+    | createContext
+    | createSPFile
+    | createPFile
+    | createControlFile
+    | createFlashbackArchive
+    | alterFlashbackArchive
+    | dropFlashbackArchive
+    | createDiskgroup
+    | dropDiskgroup
+    | createRollbackSegment
+    | dropRollbackSegment
+    | createLockdownProfile
+    | dropLockdownProfile
+    | createInmemoryJoinGroup
+    | alterInmemoryJoinGroup
+    | dropInmemoryJoinGroup
+    | createRestorePoint
+    | dropRestorePoint
+    | dropOperator
+    | alterLibrary
+    | alterMaterializedZonemap
+    | alterJava
+    | alterAuditPolicy
+    | alterCluster
+    | alterOperator
+    | alterDiskgroup
+    | alterIndexType
     ) SEMI_?
     ;

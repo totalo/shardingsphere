@@ -29,11 +29,11 @@ import java.util.Optional;
  * PostgreSQL insert statement.
  */
 @Setter
-@ToString
+@ToString(callSuper = true)
 public final class PostgreSQLInsertStatement extends InsertStatement implements PostgreSQLStatement {
     
     private WithSegment withSegment;
-
+    
     /**
      * Get with segment.
      *

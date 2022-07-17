@@ -56,6 +56,9 @@ import org.apache.shardingsphere.dbdiscovery.api.config.rule.DatabaseDiscoveryDa
 import org.apache.shardingsphere.dbdiscovery.api.config.rule.DatabaseDiscoveryHeartBeatConfiguration;
 import org.apache.shardingsphere.infra.config.algorithm.ShardingSphereAlgorithmConfiguration;
 </#if>
+<#if transaction!="local">
+import org.apache.shardingsphere.transaction.config.TransactionRuleConfiguration;
+</#if>
 
 import javax.sql.DataSource;
 import java.sql.SQLException;
@@ -78,13 +81,8 @@ public final class Configuration {
     private static final String PASSWORD = "${password}";
     
     public DataSource createDataSource() throws SQLException {
-    <#if mode=="memory">
-        return ShardingSphereDataSourceFactory.createDataSource(createDataSourceMap(), createRuleConfiguration(), createProperties());
-    <#else>
         return ShardingSphereDataSourceFactory.createDataSource(createModeConfiguration(), createDataSourceMap(), createRuleConfiguration(), createProperties());
-    </#if>
     }
-<#if mode!="memory">
     
     private static ModeConfiguration createModeConfiguration() {
     <#if mode=="cluster-zookeeper">
@@ -93,11 +91,10 @@ public final class Configuration {
     <#if mode=="cluster-etcd">
         return new ModeConfiguration("Cluster", new ClusterPersistRepositoryConfiguration("etcd", "governance-sharding-data-source", "localhost:2379", new Properties()), true);
     </#if>
-    <#if mode=="standalone-file">
-        return new ModeConfiguration("Standalone", new StandalonePersistRepositoryConfiguration("File", new Properties()), true);
+    <#if mode=="standalone">
+        return new ModeConfiguration("Standalone", new StandalonePersistRepositoryConfiguration("H2", new Properties()), true);
     </#if> 
     }
-</#if>
     
     private Map<String, DataSource> createDataSourceMap() {
         Map<String, DataSource> result = new LinkedHashMap<>();
@@ -118,6 +115,9 @@ public final class Configuration {
     
     private Collection<RuleConfiguration> createRuleConfiguration() {
         Collection<RuleConfiguration> result = new LinkedList<>();
+    <#if transaction!="local">
+        result.add(createTransactionRuleConfiguration());
+    </#if>
     <#if feature?contains("db-discovery")>
         result.add(createDatabaseDiscoveryRuleConfiguration());
     </#if>
@@ -139,6 +139,20 @@ public final class Configuration {
 <#list feature?split(",") as item>
     <#include "${item}.ftl">
 </#list>
+     <#if transaction!="local">
+     
+     private TransactionRuleConfiguration createTransactionRuleConfiguration() {
+     <#if transaction=="xa-atomikos">
+        return new TransactionRuleConfiguration("XA", "Atomikos", new Properties());
+     <#elseif transaction=="xa-narayana">
+        return new TransactionRuleConfiguration("XA", "Narayana", new Properties());
+     <#elseif transaction=="xa-bitronix">
+        return new TransactionRuleConfiguration("XA", "Bitronix", new Properties());
+     <#elseif transaction=="base-seata">
+        return new TransactionRuleConfiguration("BASE", "Seata", new Properties());
+     </#if>
+     }
+    </#if>
     
     private Properties createProperties() {
         Properties result = new Properties();

@@ -30,7 +30,7 @@ import java.util.Optional;
  * MySQL explain statement.
  */
 @Setter
-@ToString
+@ToString(callSuper = true)
 public final class MySQLExplainStatement extends ExplainStatement implements MySQLStatement {
     
     private SimpleTableSegment table;
@@ -45,7 +45,7 @@ public final class MySQLExplainStatement extends ExplainStatement implements MyS
     public Optional<SimpleTableSegment> getTable() {
         return Optional.ofNullable(table);
     }
-
+    
     /**
      * Get column segment.
      *

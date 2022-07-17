@@ -21,9 +21,10 @@ import org.apache.shardingsphere.authority.constant.AuthorityOrder;
 import org.apache.shardingsphere.authority.model.PrivilegeType;
 import org.apache.shardingsphere.authority.model.ShardingSpherePrivileges;
 import org.apache.shardingsphere.authority.rule.AuthorityRule;
-import org.apache.shardingsphere.infra.executor.check.SQLCheckResult;
+import org.apache.shardingsphere.infra.binder.statement.SQLStatementContext;
+import org.apache.shardingsphere.infra.check.SQLCheckResult;
 import org.apache.shardingsphere.infra.executor.check.SQLChecker;
-import org.apache.shardingsphere.infra.metadata.ShardingSphereMetaData;
+import org.apache.shardingsphere.infra.metadata.database.ShardingSphereDatabase;
 import org.apache.shardingsphere.infra.metadata.user.Grantee;
 import org.apache.shardingsphere.infra.metadata.user.ShardingSphereUser;
 import org.apache.shardingsphere.sql.parser.sql.common.statement.SQLStatement;
@@ -52,58 +53,31 @@ import java.util.function.BiPredicate;
 
 /**
  * Authority checker.
- * 权限校验
  */
 public final class AuthorityChecker implements SQLChecker<AuthorityRule> {
     
-    /**
-     * 针对用户检查权限是否存在.
-     *
-     * @param schemaName schema name 数据库
-     * @param grantee grantee 用户
-     * @param authorityRule 认证规则
-     * @return
-     */
     @Override
-    public boolean check(final String schemaName, final Grantee grantee, final AuthorityRule authorityRule) {
+    public boolean check(final String databaseName, final Grantee grantee, final AuthorityRule authorityRule) {
         if (null == grantee) {
             return true;
         }
-        return authorityRule.findPrivileges(grantee).map(optional -> optional.hasPrivileges(schemaName)).orElse(false);
+        return authorityRule.findPrivileges(grantee).map(optional -> optional.hasPrivileges(databaseName)).orElse(false);
     }
     
-    /**
-     * SQL语句级别权限检查.
-     *
-     * @param sqlStatement SQL statement sql语句
-     * @param parameters SQL parameters sql的参数
-     * @param grantee grantee sql执行人
-     * @param currentSchema current schema 当前的数据库
-     * @param metaDataMap meta data map 元数据信息
-     * @param authorityRule 认证规则
-     * @return
-     */
     @Override
-    public SQLCheckResult check(final SQLStatement sqlStatement, final List<Object> parameters, final Grantee grantee, 
-                                final String currentSchema, final Map<String, ShardingSphereMetaData> metaDataMap, final AuthorityRule authorityRule) {
-        // 没有用户，直接放行
+    public SQLCheckResult check(final SQLStatementContext<?> sqlStatementContext, final List<Object> parameters, final Grantee grantee,
+                                final String currentDatabase, final Map<String, ShardingSphereDatabase> databases, final AuthorityRule authorityRule) {
         if (null == grantee) {
             return new SQLCheckResult(true, "");
         }
-        
-        // 根据用户查询权限
         Optional<ShardingSpherePrivileges> privileges = authorityRule.findPrivileges(grantee);
         if (!privileges.isPresent()) {
             return new SQLCheckResult(false, String.format("Access denied for user '%s'@'%s'", grantee.getUsername(), grantee.getHostname()));
         }
-        
-        // 判断当前用户是否有当前数据库的权限
-        if (null != currentSchema && !privileges.filter(optional -> optional.hasPrivileges(currentSchema)).isPresent()) {
-            return new SQLCheckResult(false, String.format("Unknown database '%s'", currentSchema));
+        if (null != currentDatabase && !privileges.filter(optional -> optional.hasPrivileges(currentDatabase)).isPresent()) {
+            return new SQLCheckResult(false, String.format("Unknown database '%s'", currentDatabase));
         }
-        
-        // 获取当前sql执行需要的权限类型
-        PrivilegeType privilegeType = getPrivilege(sqlStatement);
+        PrivilegeType privilegeType = getPrivilege(sqlStatementContext.getSqlStatement());
         String errorMessage = Objects.isNull(privilegeType) ? "" : String.format("Access denied for operation %s", privilegeType.name());
         return privileges.map(optional -> new SQLCheckResult(optional.hasPrivileges(Collections.singletonList(privilegeType)), errorMessage)).orElseGet(() -> new SQLCheckResult(false, ""));
     }
@@ -116,7 +90,7 @@ public final class AuthorityChecker implements SQLChecker<AuthorityRule> {
     @Override
     public boolean check(final Grantee grantee, final BiPredicate<Object, Object> validator, final Object cipher, final AuthorityRule authorityRule) {
         Optional<ShardingSphereUser> user = authorityRule.findUser(grantee);
-        return user.filter(shardingSphereUser -> validator.test(shardingSphereUser, cipher)).isPresent();
+        return user.filter(each -> validator.test(each, cipher)).isPresent();
     }
     
     private PrivilegeType getPrivilege(final SQLStatement sqlStatement) {

@@ -26,26 +26,45 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class LockNodeUtil {
     
-    private static final String LOCK_DELIMITER = "-";
+    private static final String LOCK_NAME_DELIMITER = "#@#";
     
     /**
-     * Generate schema lock name.
+     * Generate Lock leases node path.
      *
-     * @param schema schema name
-     * @param instanceId instance id
-     * @return lock name
+     * @param lockName lock name
+     * @return lock leases
      */
-    public static String generateSchemaLockName(final String schema, final String instanceId) {
-        return schema + LOCK_DELIMITER + instanceId;
+    public static String generateLockLeasesNodePath(final String lockName) {
+        return lockName + "/leases";
     }
     
     /**
-     * Parse schema lock name.
+     * Generate Lock sequence node path.
      *
-     * @param lockedName locked name
-     * @return string array of schema name and instance id
+     * @param lockName lock name
+     * @return lock leases
      */
-    public static String[] parseSchemaLockName(final String lockedName) {
-        return lockedName.trim().split(LOCK_DELIMITER);
+    public static String generateLockSequenceNodePath(final String lockName) {
+        return lockName + "/sequence";
+    }
+    
+    /**
+     * generate ack path name.
+     *
+     * @param lockName lock name
+     * @return ack path name
+     */
+    public static String generateAckPathName(final String lockName) {
+        return lockName + "/ack";
+    }
+    
+    /**
+     * Parse ack locked name.
+     *
+     * @param ackLockedName ack locked name
+     * @return string array of locked name and instance id
+     */
+    public static String[] parseAckLockName(final String ackLockedName) {
+        return ackLockedName.trim().split(LOCK_NAME_DELIMITER);
     }
 }

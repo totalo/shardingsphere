@@ -20,22 +20,21 @@ package org.apache.shardingsphere.proxy.initializer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shardingsphere.infra.config.mode.ModeConfiguration;
-import org.apache.shardingsphere.infra.instance.definition.InstanceDefinition;
-import org.apache.shardingsphere.infra.instance.definition.InstanceType;
+import org.apache.shardingsphere.infra.instance.metadata.InstanceMetaData;
+import org.apache.shardingsphere.infra.instance.metadata.InstanceMetaDataBuilderFactory;
 import org.apache.shardingsphere.infra.yaml.config.swapper.mode.ModeConfigurationYamlSwapper;
 import org.apache.shardingsphere.mode.manager.ContextManager;
 import org.apache.shardingsphere.mode.manager.ContextManagerBuilderFactory;
 import org.apache.shardingsphere.mode.manager.ContextManagerBuilderParameter;
 import org.apache.shardingsphere.mode.manager.listener.ContextManagerLifecycleListener;
+import org.apache.shardingsphere.mode.manager.listener.ContextManagerLifecycleListenerFactory;
 import org.apache.shardingsphere.proxy.backend.config.ProxyConfiguration;
 import org.apache.shardingsphere.proxy.backend.config.YamlProxyConfiguration;
 import org.apache.shardingsphere.proxy.backend.config.yaml.swapper.YamlProxyConfigurationSwapper;
 import org.apache.shardingsphere.proxy.backend.context.ProxyContext;
 import org.apache.shardingsphere.proxy.version.ShardingSphereProxyVersion;
-import org.apache.shardingsphere.spi.ShardingSphereServiceLoader;
 
 import java.sql.SQLException;
-import java.util.Collection;
 
 /**
  * Bootstrap initializer.
@@ -44,45 +43,31 @@ import java.util.Collection;
 @Slf4j
 public final class BootstrapInitializer {
     
-    static {
-        ShardingSphereServiceLoader.register(ContextManagerLifecycleListener.class);
-    }
-    
     /**
      * Initialize.
-     * 初始化上下文内容
      *
      * @param yamlConfig YAML proxy configuration
      * @param port proxy port
      * @throws SQLException SQL exception
      */
     public void init(final YamlProxyConfiguration yamlConfig, final int port) throws SQLException {
-        // 运行模式
         ModeConfiguration modeConfig = null == yamlConfig.getServerConfiguration().getMode() ? null : new ModeConfigurationYamlSwapper().swapToObject(yamlConfig.getServerConfiguration().getMode());
-        // 上下文内容 主要是各种规则以及一些数据库的元数据
         ContextManager contextManager = createContextManager(yamlConfig, modeConfig, port);
-        ProxyContext.getInstance().init(contextManager);
-        // todo 这个的作用是啥？
+        ProxyContext.init(contextManager);
         contextManagerInitializedCallback(modeConfig, contextManager);
-        // 设置版本号
         ShardingSphereProxyVersion.setVersion(contextManager);
     }
     
     private ContextManager createContextManager(final YamlProxyConfiguration yamlConfig, final ModeConfiguration modeConfig, final int port) throws SQLException {
         ProxyConfiguration proxyConfig = new YamlProxyConfigurationSwapper().swap(yamlConfig);
-        ContextManagerBuilderParameter parameter = ContextManagerBuilderParameter.builder()
-                .modeConfig(modeConfig)
-                .schemaConfigs(proxyConfig.getSchemaConfigurations())
-                .globalRuleConfigs(proxyConfig.getGlobalConfiguration().getRules())
-                .props(proxyConfig.getGlobalConfiguration().getProperties())
-                .labels(proxyConfig.getGlobalConfiguration().getLabels())
-                .instanceDefinition(new InstanceDefinition(InstanceType.PROXY, port)).build();
-        return ContextManagerBuilderFactory.newInstance(modeConfig).build(parameter);
+        InstanceMetaData instanceMetaData = InstanceMetaDataBuilderFactory.create("Proxy", port);
+        ContextManagerBuilderParameter parameter = new ContextManagerBuilderParameter(modeConfig, proxyConfig.getDatabaseConfigurations(),
+                proxyConfig.getGlobalConfiguration().getRules(), proxyConfig.getGlobalConfiguration().getProperties(), proxyConfig.getGlobalConfiguration().getLabels(), instanceMetaData);
+        return ContextManagerBuilderFactory.getInstance(modeConfig).build(parameter);
     }
     
     private void contextManagerInitializedCallback(final ModeConfiguration modeConfig, final ContextManager contextManager) {
-        Collection<ContextManagerLifecycleListener> listeners = ShardingSphereServiceLoader.getServiceInstances(ContextManagerLifecycleListener.class);
-        for (ContextManagerLifecycleListener each : listeners) {
+        for (ContextManagerLifecycleListener each : ContextManagerLifecycleListenerFactory.getAllInstances()) {
             try {
                 each.onInitialized(modeConfig, contextManager);
                 // CHECKSTYLE:OFF

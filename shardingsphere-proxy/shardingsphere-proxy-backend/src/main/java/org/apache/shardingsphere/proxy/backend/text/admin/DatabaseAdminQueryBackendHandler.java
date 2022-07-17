@@ -18,25 +18,23 @@
 package org.apache.shardingsphere.proxy.backend.text.admin;
 
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.concurrent.LazyInitializer;
 import org.apache.shardingsphere.infra.database.type.DatabaseType;
 import org.apache.shardingsphere.infra.executor.sql.execute.result.query.QueryResultMetaData;
 import org.apache.shardingsphere.infra.merge.result.MergedResult;
-import org.apache.shardingsphere.infra.metadata.ShardingSphereMetaData;
-import org.apache.shardingsphere.infra.rule.identifier.type.DataNodeContainedRule;
+import org.apache.shardingsphere.infra.metadata.database.ShardingSphereDatabase;
 import org.apache.shardingsphere.proxy.backend.context.ProxyContext;
+import org.apache.shardingsphere.proxy.backend.response.data.QueryResponseCell;
+import org.apache.shardingsphere.proxy.backend.response.data.QueryResponseRow;
 import org.apache.shardingsphere.proxy.backend.response.header.ResponseHeader;
+import org.apache.shardingsphere.proxy.backend.response.header.query.QueryHeader;
 import org.apache.shardingsphere.proxy.backend.response.header.query.QueryHeaderBuilderEngine;
 import org.apache.shardingsphere.proxy.backend.response.header.query.QueryResponseHeader;
-import org.apache.shardingsphere.proxy.backend.response.header.query.QueryHeader;
 import org.apache.shardingsphere.proxy.backend.session.ConnectionSession;
 import org.apache.shardingsphere.proxy.backend.text.TextProtocolBackendHandler;
 import org.apache.shardingsphere.proxy.backend.text.admin.executor.DatabaseAdminQueryExecutor;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -63,25 +61,13 @@ public final class DatabaseAdminQueryBackendHandler implements TextProtocolBacke
     
     private List<QueryHeader> createResponseHeader() throws SQLException {
         List<QueryHeader> result = new ArrayList<>(queryResultMetaData.getColumnCount());
-        ShardingSphereMetaData metaData = null == connectionSession.getSchemaName() ? null : ProxyContext.getInstance().getMetaData(connectionSession.getSchemaName());
-        DatabaseType databaseType = null == metaData ? connectionSession.getDatabaseType() 
-                : ProxyContext.getInstance().getContextManager().getMetaDataContexts().getMetaData(metaData.getName()).getResource().getDatabaseType();
+        ShardingSphereDatabase database = null == connectionSession.getDatabaseName() ? null : ProxyContext.getInstance().getDatabase(connectionSession.getDatabaseName());
+        DatabaseType databaseType = null == database ? connectionSession.getDatabaseType() : database.getProtocolType();
         QueryHeaderBuilderEngine queryHeaderBuilderEngine = new QueryHeaderBuilderEngine(databaseType);
-        LazyInitializer<DataNodeContainedRule> dataNodeContainedRule = getDataNodeContainedRuleLazyInitializer(metaData);
         for (int columnIndex = 1; columnIndex <= queryResultMetaData.getColumnCount(); columnIndex++) {
-            result.add(queryHeaderBuilderEngine.build(queryResultMetaData, metaData, columnIndex, dataNodeContainedRule));
+            result.add(queryHeaderBuilderEngine.build(queryResultMetaData, database, columnIndex));
         }
         return result;
-    }
-    
-    private LazyInitializer<DataNodeContainedRule> getDataNodeContainedRuleLazyInitializer(final ShardingSphereMetaData metaData) {
-        return new LazyInitializer<DataNodeContainedRule>() {
-            
-            @Override
-            protected DataNodeContainedRule initialize() {
-                return null == metaData ? null : metaData.getRuleMetaData().findSingleRule(DataNodeContainedRule.class).orElse(null);
-            }
-        };
     }
     
     @Override
@@ -90,11 +76,11 @@ public final class DatabaseAdminQueryBackendHandler implements TextProtocolBacke
     }
     
     @Override
-    public Collection<Object> getRowData() throws SQLException {
-        Collection<Object> result = new LinkedList<>();
+    public QueryResponseRow getRowData() throws SQLException {
+        List<QueryResponseCell> result = new ArrayList<>(queryResultMetaData.getColumnCount());
         for (int columnIndex = 1; columnIndex <= queryResultMetaData.getColumnCount(); columnIndex++) {
-            result.add(mergedResult.getValue(columnIndex, Object.class));
+            result.add(new QueryResponseCell(queryResultMetaData.getColumnType(columnIndex), mergedResult.getValue(columnIndex, Object.class)));
         }
-        return result;
+        return new QueryResponseRow(result);
     }
 }

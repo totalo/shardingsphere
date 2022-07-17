@@ -17,11 +17,12 @@
 
 package org.apache.shardingsphere.scaling.distsql.handler.query;
 
-import org.apache.shardingsphere.data.pipeline.api.PipelineJobAPIFactory;
+import org.apache.shardingsphere.data.pipeline.api.RuleAlteredJobAPIFactory;
 import org.apache.shardingsphere.data.pipeline.api.RuleAlteredJobAPI;
 import org.apache.shardingsphere.data.pipeline.api.check.consistency.DataConsistencyCheckResult;
+import org.apache.shardingsphere.distsql.parser.segment.AlgorithmSegment;
 import org.apache.shardingsphere.infra.distsql.query.DistSQLResultSet;
-import org.apache.shardingsphere.infra.metadata.ShardingSphereMetaData;
+import org.apache.shardingsphere.infra.metadata.database.ShardingSphereDatabase;
 import org.apache.shardingsphere.scaling.distsql.statement.CheckScalingStatement;
 import org.apache.shardingsphere.sql.parser.sql.common.statement.SQLStatement;
 
@@ -33,32 +34,33 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * Check scaling query result set.
+ * Query result set for check scaling.
  */
 public final class CheckScalingQueryResultSet implements DistSQLResultSet {
     
-    private static final RuleAlteredJobAPI RULE_ALTERED_JOB_API = PipelineJobAPIFactory.newInstance();
+    private static final RuleAlteredJobAPI RULE_ALTERED_JOB_API = RuleAlteredJobAPIFactory.getInstance();
     
     private Iterator<Collection<Object>> data;
     
     @Override
-    public void init(final ShardingSphereMetaData metaData, final SQLStatement sqlStatement) {
+    public void init(final ShardingSphereDatabase database, final SQLStatement sqlStatement) {
         CheckScalingStatement checkScalingStatement = (CheckScalingStatement) sqlStatement;
         Map<String, DataConsistencyCheckResult> checkResultMap;
-        if (null == checkScalingStatement.getTypeStrategy()) {
+        AlgorithmSegment typeStrategy = checkScalingStatement.getTypeStrategy();
+        if (null == typeStrategy) {
             checkResultMap = RULE_ALTERED_JOB_API.dataConsistencyCheck(checkScalingStatement.getJobId());
         } else {
-            checkResultMap = RULE_ALTERED_JOB_API.dataConsistencyCheck(checkScalingStatement.getJobId(), checkScalingStatement.getTypeStrategy().getName());
+            checkResultMap = RULE_ALTERED_JOB_API.dataConsistencyCheck(checkScalingStatement.getJobId(), typeStrategy.getName(), typeStrategy.getProps());
         }
         data = checkResultMap.entrySet().stream()
                 .map(each -> {
-                    Collection<Object> list = new LinkedList<>();
-                    list.add(each.getKey());
-                    list.add(each.getValue().getSourceRecordsCount());
-                    list.add(each.getValue().getTargetRecordsCount());
-                    list.add(each.getValue().isRecordsCountMatched() + "");
-                    list.add(each.getValue().isRecordsContentMatched() + "");
-                    return list;
+                    Collection<Object> result = new LinkedList<>();
+                    result.add(each.getKey());
+                    result.add(each.getValue().getCountCheckResult().getSourceRecordsCount());
+                    result.add(each.getValue().getCountCheckResult().getTargetRecordsCount());
+                    result.add(each.getValue().getCountCheckResult().isMatched() + "");
+                    result.add(each.getValue().getContentCheckResult().isMatched() + "");
+                    return result;
                 }).collect(Collectors.toList()).iterator();
     }
     

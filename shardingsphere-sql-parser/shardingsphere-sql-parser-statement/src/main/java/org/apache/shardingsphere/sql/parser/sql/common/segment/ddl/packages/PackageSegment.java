@@ -20,6 +20,7 @@ package org.apache.shardingsphere.sql.parser.sql.common.segment.ddl.packages;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 import org.apache.shardingsphere.sql.parser.sql.common.segment.SQLSegment;
 import org.apache.shardingsphere.sql.parser.sql.common.segment.generic.OwnerAvailable;
 import org.apache.shardingsphere.sql.parser.sql.common.segment.generic.OwnerSegment;
@@ -33,16 +34,17 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Getter
 @Setter
+@ToString
 public final class PackageSegment implements SQLSegment, OwnerAvailable {
-
+    
     private final int startIndex;
-
+    
     private final int stopIndex;
-
+    
     private final IdentifierValue identifier;
-
+    
     private OwnerSegment owner;
-
+    
     @Override
     public Optional<OwnerSegment> getOwner() {
         return Optional.ofNullable(owner);

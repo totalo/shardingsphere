@@ -27,10 +27,10 @@ import org.apache.shardingsphere.sql.parser.sql.dialect.statement.mysql.MySQLSta
 /**
  * MySQL delimiter statement.
  */
-@ToString
 @Getter
 @Setter
+@ToString(callSuper = true)
 public final class MySQLDelimiterStatement extends AbstractSQLStatement implements DALStatement, MySQLStatement {
-
+    
     private String delimiterName;
 }

@@ -25,17 +25,11 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * Database type of SQLServer.
  */
 public final class SQLServerDatabaseType implements DatabaseType {
-    
-    @Override
-    public String getName() {
-        return "SQLServer";
-    }
     
     @Override
     public QuoteCharacter getQuoteCharacter() {
@@ -53,11 +47,6 @@ public final class SQLServerDatabaseType implements DatabaseType {
     }
     
     @Override
-    public Optional<String> getDataSourceClassName() {
-        return Optional.of("com.microsoft.sqlserver.jdbc.SQLServerDataSource");
-    }
-    
-    @Override
     public Map<String, Collection<String>> getSystemDatabaseSchemaMap() {
         return Collections.emptyMap();
     }
@@ -65,5 +54,10 @@ public final class SQLServerDatabaseType implements DatabaseType {
     @Override
     public Collection<String> getSystemSchemas() {
         return Collections.emptyList();
+    }
+    
+    @Override
+    public String getType() {
+        return "SQLServer";
     }
 }

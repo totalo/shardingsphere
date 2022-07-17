@@ -19,6 +19,8 @@ package org.apache.shardingsphere.proxy;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import org.apache.shardingsphere.infra.config.props.ConfigurationProperties;
+import org.apache.shardingsphere.infra.config.props.ConfigurationPropertyKey;
 import org.apache.shardingsphere.proxy.arguments.BootstrapArguments;
 import org.apache.shardingsphere.proxy.backend.config.ProxyConfigurationLoader;
 import org.apache.shardingsphere.proxy.backend.config.YamlProxyConfiguration;
@@ -27,6 +29,7 @@ import org.apache.shardingsphere.proxy.initializer.BootstrapInitializer;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.List;
 
 /**
  * ShardingSphere-Proxy Bootstrap.
@@ -35,7 +38,6 @@ import java.sql.SQLException;
 public final class Bootstrap {
     
     /**
-     * proxy启动入口
      * Main entrance.
      *
      * @param args startup arguments
@@ -43,14 +45,11 @@ public final class Bootstrap {
      * @throws SQLException SQL exception
      */
     public static void main(final String[] args) throws IOException, SQLException {
-        // 获取系统的参数，包括端口号、配置文件的目录，可以指定，也可能是默认
         BootstrapArguments bootstrapArgs = new BootstrapArguments(args);
-        // 加载配置并转化为相关对象
         YamlProxyConfiguration yamlConfig = ProxyConfigurationLoader.load(bootstrapArgs.getConfigurationPath());
-        // 初始化上下文等内容
-        new BootstrapInitializer().init(yamlConfig, bootstrapArgs.getPort());
-        
-        // 启动
-        new ShardingSphereProxy().start(bootstrapArgs.getPort());
+        int port = bootstrapArgs.getPort().orElseGet(() -> new ConfigurationProperties(yamlConfig.getServerConfiguration().getProps()).getValue(ConfigurationPropertyKey.PROXY_DEFAULT_PORT));
+        List<String> addresses = bootstrapArgs.getAddresses();
+        new BootstrapInitializer().init(yamlConfig, port);
+        new ShardingSphereProxy().start(port, addresses);
     }
 }

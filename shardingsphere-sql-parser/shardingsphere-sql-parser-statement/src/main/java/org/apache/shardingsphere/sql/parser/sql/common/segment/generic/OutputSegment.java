@@ -20,6 +20,7 @@ package org.apache.shardingsphere.sql.parser.sql.common.segment.generic;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 import org.apache.shardingsphere.sql.parser.sql.common.segment.SQLSegment;
 import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.column.ColumnSegment;
 import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.item.ColumnProjectionSegment;
@@ -33,6 +34,7 @@ import java.util.LinkedList;
  */
 @RequiredArgsConstructor
 @Getter
+@ToString
 public final class OutputSegment implements SQLSegment {
     
     private final int startIndex;
@@ -42,7 +44,7 @@ public final class OutputSegment implements SQLSegment {
     @Setter
     private TableNameSegment tableName;
     
-    private Collection<ColumnProjectionSegment> outputColumns = new LinkedList<>();
+    private final Collection<ColumnProjectionSegment> outputColumns = new LinkedList<>();
     
-    private Collection<ColumnSegment> tableColumns = new LinkedList<>();
+    private final Collection<ColumnSegment> tableColumns = new LinkedList<>();
 }

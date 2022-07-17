@@ -19,6 +19,7 @@ package org.apache.shardingsphere.sql.parser.sql.common.segment.dml.predicate;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 import org.apache.shardingsphere.sql.parser.sql.common.segment.SQLSegment;
 import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.column.ColumnSegment;
 import org.apache.shardingsphere.sql.parser.sql.common.segment.generic.table.SimpleTableSegment;
@@ -29,16 +30,16 @@ import java.util.List;
 /**
  * Lock segment.
  */
-
 @RequiredArgsConstructor
 @Getter
+@ToString
 public final class LockSegment implements SQLSegment {
-
-    private final int startIndex;
-
-    private final int stopIndex;
-
-    private List<SimpleTableSegment> tables = new LinkedList<>();
     
-    private List<ColumnSegment> columns = new LinkedList<>();
+    private final int startIndex;
+    
+    private final int stopIndex;
+    
+    private final List<SimpleTableSegment> tables = new LinkedList<>();
+    
+    private final List<ColumnSegment> columns = new LinkedList<>();
 }

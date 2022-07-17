@@ -17,58 +17,40 @@
 
 package org.apache.shardingsphere.mode.manager.standalone.lock;
 
-import com.google.common.base.Preconditions;
-import org.apache.shardingsphere.infra.instance.InstanceContext;
-import org.apache.shardingsphere.infra.lock.LockContext;
+import org.apache.shardingsphere.infra.lock.LockScope;
 import org.apache.shardingsphere.infra.lock.ShardingSphereLock;
-
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.ReentrantLock;
+import org.apache.shardingsphere.mode.manager.lock.AbstractLockContext;
+import org.apache.shardingsphere.mode.manager.lock.definition.DatabaseLockDefinition;
 
 /**
  * Standalone lock context.
  */
-public final class StandaloneLockContext implements LockContext {
+public final class StandaloneLockContext extends AbstractLockContext {
     
-    private final Map<String, ShardingSphereLock> locks = new ConcurrentHashMap<>();
+    private final ShardingSphereLock standaloneLock = new ShardingSphereStandaloneLock();
     
     @Override
-    public void initLockState(final InstanceContext instanceContext) {
-        throw new UnsupportedOperationException("Lock context init lock state not supported in standalone mode");
+    public ShardingSphereLock getLock(final LockScope lockScope) {
+        return standaloneLock;
     }
     
     @Override
-    public ShardingSphereLock getOrCreateSchemaLock(final String schemaName) {
-        Preconditions.checkNotNull(schemaName, "Get or create schema lock args schema name can not be null.");
-        ShardingSphereLock result = locks.get(schemaName);
-        if (null != result) {
-            return result;
-        }
-        synchronized (locks) {
-            result = locks.get(schemaName);
-            if (null != result) {
-                return result;
-            }
-            result = new ShardingSphereNonReentrantLock(new ReentrantLock());
-            locks.put(schemaName, result);
-            return result;
-        }
+    protected boolean tryLock(final DatabaseLockDefinition lockDefinition) {
+        return standaloneLock.tryLock(lockDefinition.getLockNameDefinition().getDatabaseName());
     }
     
     @Override
-    public Optional<ShardingSphereLock> getSchemaLock(final String schemaName) {
-        if (null == schemaName) {
-            return Optional.empty();
-        }
-        return Optional.ofNullable(locks.get(schemaName));
+    protected boolean tryLock(final DatabaseLockDefinition lockDefinition, final long timeoutMilliseconds) {
+        return standaloneLock.tryLock(lockDefinition.getLockNameDefinition().getDatabaseName(), timeoutMilliseconds);
     }
     
     @Override
-    public boolean isLockedSchema(final String schemaName) {
-        Preconditions.checkNotNull(schemaName, "Is locked schema args schema name can not be null.");
-        ShardingSphereLock shardingSphereLock = locks.get(schemaName);
-        return null != shardingSphereLock && shardingSphereLock.isLocked(schemaName);
+    protected void releaseLock(final DatabaseLockDefinition lockDefinition) {
+        standaloneLock.releaseLock(lockDefinition.getLockNameDefinition().getDatabaseName());
+    }
+    
+    @Override
+    protected boolean isLocked(final DatabaseLockDefinition lockDefinition) {
+        return standaloneLock.isLocked(lockDefinition.getLockNameDefinition().getDatabaseName());
     }
 }

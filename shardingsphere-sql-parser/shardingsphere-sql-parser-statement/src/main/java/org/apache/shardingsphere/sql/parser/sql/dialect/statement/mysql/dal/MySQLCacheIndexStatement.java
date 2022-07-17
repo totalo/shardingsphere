@@ -34,9 +34,9 @@ import java.util.LinkedList;
  * MySQL cache index statement.
  */
 @Getter
-@ToString
+@ToString(callSuper = true)
 public final class MySQLCacheIndexStatement extends AbstractSQLStatement implements DALStatement, MySQLStatement {
-
+    
     private final Collection<CacheTableIndexSegment> tableIndexes = new LinkedList<>();
     
     @Setter
