@@ -29,7 +29,6 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
-import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Base64;
@@ -42,15 +41,25 @@ public final class AESEncryptAlgorithm implements EncryptAlgorithm<Object, Strin
     
     private static final String AES_KEY = "aes-key-value";
     
+    private static final String AES = "AES";
+    
+    private static final ThreadLocal<Cipher> CIPHER_THREAD_LOCAL = ThreadLocal.withInitial(() -> {
+        try {
+            return Cipher.getInstance(AES);
+        } catch (final NoSuchAlgorithmException | NoSuchPaddingException ex) {
+            return null;
+        }
+    });
+    
     @Getter
     private Properties props;
     
-    private byte[] secretKey;
+    private SecretKeySpec secretKeySpec;
     
     @Override
     public void init(final Properties props) {
         this.props = props;
-        secretKey = createSecretKey(props);
+        secretKeySpec = new SecretKeySpec(createSecretKey(props), getType());
     }
     
     private byte[] createSecretKey(final Properties props) {
@@ -64,7 +73,9 @@ public final class AESEncryptAlgorithm implements EncryptAlgorithm<Object, Strin
         if (null == plainValue) {
             return null;
         }
-        byte[] result = getCipher(Cipher.ENCRYPT_MODE).doFinal(String.valueOf(plainValue).getBytes(StandardCharsets.UTF_8));
+        Cipher cipher = CIPHER_THREAD_LOCAL.get();
+        cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec);
+        byte[] result = cipher.doFinal(String.valueOf(plainValue).getBytes(StandardCharsets.UTF_8));
         return Base64.getEncoder().encodeToString(result);
     }
     
@@ -74,18 +85,14 @@ public final class AESEncryptAlgorithm implements EncryptAlgorithm<Object, Strin
         if (null == cipherValue) {
             return null;
         }
-        byte[] result = getCipher(Cipher.DECRYPT_MODE).doFinal(Base64.getDecoder().decode(cipherValue));
+        Cipher cipher = CIPHER_THREAD_LOCAL.get();
+        cipher.init(Cipher.DECRYPT_MODE, secretKeySpec);
+        byte[] result = cipher.doFinal(Base64.getDecoder().decode(cipherValue));
         return new String(result, StandardCharsets.UTF_8);
-    }
-    
-    private Cipher getCipher(final int decryptMode) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException {
-        Cipher result = Cipher.getInstance(getType());
-        result.init(decryptMode, new SecretKeySpec(secretKey, getType()));
-        return result;
     }
     
     @Override
     public String getType() {
-        return "AES";
+        return AES;
     }
 }
