@@ -54,6 +54,7 @@
             <shadow:algorithm shadow-algorithm-ref="user-id-select-match-algorithm" />
             <shadow:algorithm shadow-algorithm-ref="simple-hint-algorithm" />
         </shadow:shadow-table>
+        <shadow:default-shadow-algorithm-name name="simple-hint-algorithm"/>
     </shadow:rule>
     
     <sql-parser:rule id="sqlParseRule" sql-comment-parse-enable="true" parse-tree-cache-ref="parserTreeCache" sql-statement-cache-ref="sqlStatementCache" />
