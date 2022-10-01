@@ -39,7 +39,7 @@ env:
 
 jobs:
   shardingsphere-example-generator:
-    if: github.repository == 'apache/shardingsphere'
+    # if: github.repository == 'apache/shardingsphere'
     name: ${{ matrix.feature }}--${{ matrix.framework }}--${{ matrix.mode }}--${{ matrix.transaction }}
     runs-on: ubuntu-latest
     strategy:
