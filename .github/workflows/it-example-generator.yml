@@ -46,7 +46,8 @@ jobs:
       fail-fast: false
       matrix:
         product: [ jdbc ]
-        mode: [ standalone, cluster-zookeeper ]
+        # standalone
+        mode: [ cluster-zookeeper, cluster-etcd ]
         transaction: [ local, xa-atomikos, xa-bitronix, xa-narayana ]
         feature: [ sharding, readwrite-splitting, encrypt, shadow ]
         framework: [ jdbc, spring-boot-starter-jdbc, spring-boot-starter-jpa, spring-boot-starter-mybatis, spring-namespace-jdbc, spring-namespace-jpa, spring-namespace-mybatis ]
@@ -67,6 +68,14 @@ jobs:
         image: zookeeper:3.6.2
         ports:
           - 2181:2181
+      etcd:
+        image: quay.io/coreos/etcd:v3.4.13
+        ports:
+          - 2379:2379
+          - 2380:2380
+        env:
+          ETCD_NAME: s1
+          ETCD_DATA_DIR: /etcd-data
     steps:
       - uses: actions/checkout@v3
       - name: Maven resolve ranges
