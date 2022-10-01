@@ -37,14 +37,14 @@
         <dependency>
             <groupId>org.apache.shardingsphere</groupId>
             <artifactId>shardingsphere-cluster-mode-repository-zookeeper-curator</artifactId>
-            <version>${project.version}</version>
+            <version>${r'${project.version}'}</version>
         </dependency>
     </#if>
     <#if mode=="cluster-etcd">
         <dependency>
             <groupId>org.apache.shardingsphere</groupId>
             <artifactId>shardingsphere-cluster-mode-repository-etcd</artifactId>
-            <version>${project.version}</version>
+            <version>${r'${project.version}'}</version>
         </dependency>
     </#if>
     <#if framework?contains("spring-namespace")>
