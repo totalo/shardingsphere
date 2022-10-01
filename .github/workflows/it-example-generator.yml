@@ -46,7 +46,7 @@ jobs:
       fail-fast: false
       matrix:
         product: [ jdbc ]
-        mode: [ standalone ]
+        mode: [ standalone, cluster-zookeeper ]
         transaction: [ local, xa-atomikos, xa-bitronix, xa-narayana ]
         feature: [ sharding, readwrite-splitting, encrypt, shadow ]
         framework: [ jdbc, spring-boot-starter-jdbc, spring-boot-starter-jpa, spring-boot-starter-mybatis, spring-namespace-jdbc, spring-namespace-jpa, spring-namespace-mybatis ]
@@ -63,6 +63,11 @@ jobs:
         ports:
           - 3306:3306
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+      zookeeper:
+        image: zookeeper:3.6.2
+        ports:
+          - 2181:2181
+        options: --health-cmd="echo ruok | nc localhost 2181 | grep imok" --health-interval=10s --health-timeout=5s --health-retries=3
     steps:
       - uses: actions/checkout@v3
       - name: Maven resolve ranges
