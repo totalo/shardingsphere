@@ -87,6 +87,8 @@ jobs:
           cache: 'maven'
       - name: Build with Maven
         run: ./mvnw -B -ntp clean install -Dmaven.javadoc.skip=true -DskipITs -DskipTests -Dspotless.apply.skip=true
+      - name: Example generator
+        run: ./mvnw -B test -f examples/shardingsphere-example-generator/pom.xml -Pexample-generator -Dproducts=${{ matrix.product }} -Dmodes=${{ matrix.mode }} -Dtransactions=${{ matrix.transaction }} -Dfeatures=${{ matrix.feature }} -Dframeworks=${{ matrix.framework }}
       - name: Prepare Env
         run: |
           mysql -uroot -h127.0.0.1 -p123456 -e 'CREATE DATABASE IF NOT EXISTS demo_ds_0;CREATE DATABASE IF NOT EXISTS demo_ds_1;CREATE DATABASE IF NOT EXISTS demo_ds_2;'
@@ -96,7 +98,5 @@ jobs:
           mysql -uroot -h127.0.0.1 -p123456 -e 'use demo_ds_2;CREATE TABLE IF NOT EXISTS t_order_item(order_item_id BIGINT NOT NULL AUTO_INCREMENT, order_id BIGINT NOT NULL, user_id INT NOT NULL, phone VARCHAR(50), status VARCHAR(50), PRIMARY KEY (order_item_id));'
           mysql -uroot -h127.0.0.1 -p123456 -e 'use demo_ds_1;CREATE TABLE IF NOT EXISTS t_address (address_id BIGINT NOT NULL, address_name VARCHAR(100) NOT NULL, PRIMARY KEY (address_id));'
           mysql -uroot -h127.0.0.1 -p123456 -e 'use demo_ds_2;CREATE TABLE IF NOT EXISTS t_address (address_id BIGINT NOT NULL, address_name VARCHAR(100) NOT NULL, PRIMARY KEY (address_id));'
-      - name: Example generator
-        run: ./mvnw -B test -f examples/shardingsphere-example-generator/pom.xml -Pexample-generator -Dproducts=${{ matrix.product }} -Dmodes=${{ matrix.mode }} -Dtransactions=${{ matrix.transaction }} -Dfeatures=${{ matrix.feature }} -Dframeworks=${{ matrix.framework }}
       - name: Example Test
         run : ./mvnw -B test -f examples/shardingsphere-example-generator/target/generated-sources/shardingsphere-jdbc-sample/${{ matrix.feature }}--${{ matrix.framework }}--${{ matrix.mode }}--${{ matrix.transaction }}/pom.xml -Pexample-generator -Dexec.cleanupDaemonThreads=false 
