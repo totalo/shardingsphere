@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 
-<cluster:repository id="clusterRepository" type="etcd" namespace="generator_demo" server-lists="localhost:2379">
+<cluster:repository id="clusterRepository" type="etcd" namespace="generator_demo" server-lists="http://localhost:2379">
     <props>
         <prop key="max-retries">3</prop>
         <prop key="operation-timeout-milliseconds">1000</prop>
