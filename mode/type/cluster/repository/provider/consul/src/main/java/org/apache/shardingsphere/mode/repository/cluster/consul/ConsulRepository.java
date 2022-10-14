@@ -24,15 +24,14 @@ import com.ecwid.consul.v1.kv.model.GetValue;
 import com.ecwid.consul.v1.kv.model.PutParams;
 import com.ecwid.consul.v1.session.model.NewSession;
 import com.ecwid.consul.v1.session.model.Session;
-import org.apache.shardingsphere.elasticjob.lite.internal.storage.LeaderExecutionCallback;
 import org.apache.shardingsphere.mode.repository.cluster.ClusterPersistRepository;
 import org.apache.shardingsphere.mode.repository.cluster.ClusterPersistRepositoryConfiguration;
+import org.apache.shardingsphere.mode.repository.cluster.LeaderExecutionCallback;
 import org.apache.shardingsphere.mode.repository.cluster.consul.lock.ConsulInternalLockProvider;
 import org.apache.shardingsphere.mode.repository.cluster.consul.props.ConsulProperties;
 import org.apache.shardingsphere.mode.repository.cluster.consul.props.ConsulPropertyKey;
 import org.apache.shardingsphere.mode.repository.cluster.listener.DataChangedEvent;
 import org.apache.shardingsphere.mode.repository.cluster.listener.DataChangedEventListener;
-import org.apache.shardingsphere.mode.repository.cluster.transaction.TransactionOperation;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -40,6 +39,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -90,12 +90,18 @@ public class ConsulRepository implements ClusterPersistRepository {
     }
     
     @Override
-    public void executeInTransaction(final List<TransactionOperation> transactionOperations) {
+    public void updateInTransaction(final String key, final String value) {
         // TODO
     }
     
     @Override
     public String get(final String key) {
+        // TODO
+        return null;
+    }
+    
+    @Override
+    public String getDirectly(final String key) {
         Response<GetValue> response = consulClient.getKVValue(key);
         return null == response ? null : response.getValue().getValue();
     }
@@ -175,7 +181,7 @@ public class ConsulRepository implements ClusterPersistRepository {
     }
     
     @Override
-    public void watch(final String key, final DataChangedEventListener listener) {
+    public void watch(final String key, final DataChangedEventListener listener, final Executor executor) {
         Thread watchThread = new Thread(() -> watchChildKeyChangeEvent(key, listener));
         watchThread.setDaemon(true);
         watchThread.start();

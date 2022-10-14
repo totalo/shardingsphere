@@ -17,12 +17,10 @@
 
 package org.apache.shardingsphere.mode.repository.cluster;
 
-import org.apache.shardingsphere.elasticjob.lite.internal.storage.LeaderExecutionCallback;
 import org.apache.shardingsphere.mode.persist.PersistRepository;
 import org.apache.shardingsphere.mode.repository.cluster.listener.DataChangedEventListener;
-import org.apache.shardingsphere.mode.repository.cluster.transaction.TransactionOperation;
 
-import java.util.List;
+import java.util.concurrent.Executor;
 
 /**
  * Cluster persist repository.
@@ -90,12 +88,12 @@ public interface ClusterPersistRepository extends PersistRepository {
     void executeInLeader(String key, LeaderExecutionCallback callback);
     
     /**
-     * Execute oprations in transaction.
+     * Update data in transaction.
      *
-     * @param transactionOperations operations
-     * @throws Exception exception
+     * @param key key
+     * @param value value
      */
-    void executeInTransaction(List<TransactionOperation> transactionOperations) throws Exception;
+    void updateInTransaction(String key, String value);
     
     /**
      * Persist ephemeral data.
@@ -134,6 +132,7 @@ public interface ClusterPersistRepository extends PersistRepository {
      *
      * @param key key of data
      * @param listener data changed event listener
+     * @param executor event notify executor
      */
-    void watch(String key, DataChangedEventListener listener);
+    void watch(String key, DataChangedEventListener listener, Executor executor);
 }

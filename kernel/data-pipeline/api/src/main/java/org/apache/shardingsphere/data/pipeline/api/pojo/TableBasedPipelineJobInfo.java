@@ -15,21 +15,19 @@
  * limitations under the License.
  */
 
-package org.apache.shardingsphere.integration.transaction.engine.entity;
+package org.apache.shardingsphere.data.pipeline.api.pojo;
 
-import lombok.Data;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 /**
- * JDBC info entity.
+ * Table based pipeline job info.
  */
 @RequiredArgsConstructor
-@Data
-public final class JdbcInfoEntity {
+@Getter
+public final class TableBasedPipelineJobInfo implements PipelineJobInfo {
     
-    private final String username;
+    private final PipelineJobMetaData jobMetaData;
     
-    private final String password;
-    
-    private final int port;
+    private final String table;
 }

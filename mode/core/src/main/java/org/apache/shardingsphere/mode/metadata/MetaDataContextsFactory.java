@@ -110,7 +110,7 @@ public final class MetaDataContextsFactory {
     private static void checkDataSourceStates(final Map<String, DatabaseConfiguration> databaseConfigs, final Map<String, StorageNodeDataSource> storageNodes, final boolean force) {
         Map<String, DataSourceState> storageDataSourceStates = getStorageDataSourceStates(storageNodes);
         databaseConfigs.forEach((key, value) -> {
-            if (null != value.getDataSources()) {
+            if (null != value.getDataSources() && !value.getDataSources().isEmpty()) {
                 DataSourceStateManager.getInstance().initStates(key, value.getDataSources(), storageDataSourceStates, force);
             }
         });
@@ -133,7 +133,7 @@ public final class MetaDataContextsFactory {
         databases.forEach((key, value) -> {
             Map<String, ShardingSphereSchema> schemas = persistService.getDatabaseMetaDataService().loadSchemas(key);
             result.put(key.toLowerCase(), new ShardingSphereDatabase(value.getName(),
-                    value.getProtocolType(), value.getResource(), value.getRuleMetaData(), schemas.isEmpty() ? value.getSchemas() : schemas));
+                    value.getProtocolType(), value.getResourceMetaData(), value.getRuleMetaData(), schemas.isEmpty() ? value.getSchemas() : schemas));
         });
         return result;
     }
