@@ -38,7 +38,7 @@ jobs:
       matrix:
         feature: [ sharding, readwrite-splitting, encrypt, shadow ]
         framework: [ jdbc, spring-boot-starter-jdbc, spring-boot-starter-jpa, spring-boot-starter-mybatis, spring-namespace-jdbc, spring-namespace-jpa, spring-namespace-mybatis ]
-        mode: [ cluster-zookeeper, cluster-etcd ]
+        mode: [ cluster-zookeeper ]
         transaction: [ local, xa-atomikos, xa-bitronix, xa-narayana ]
         product: [ jdbc ]
         exclude: 
