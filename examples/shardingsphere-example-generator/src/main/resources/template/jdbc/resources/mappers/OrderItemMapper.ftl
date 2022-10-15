@@ -28,7 +28,7 @@
     </resultMap>
     
     <update id="createTableIfNotExists">
-        CREATE TABLE IF NOT EXISTS t_order_item (order_item_id BIGINT AUTO_INCREMENT, order_id BIGINT, user_id INT NOT NULL, phone VARCHAR(50), status VARCHAR(50) , PRIMARY KEY (order_item_id));
+        CREATE TABLE IF NOT EXISTS t_order_item (order_item_id BIGINT AUTO_INCREMENT, order_id BIGINT, user_id INT NOT NULL, phone VARCHAR(50), status VARCHAR(50), PRIMARY KEY (order_item_id));
     </update>
     
     <update id="truncateTable">
@@ -41,7 +41,7 @@
  <#if feature?contains("shadow")>
     
     <update id="createTableIfNotExistsShadow">
-        CREATE TABLE IF NOT EXISTS t_order_item (order_item_id BIGINT AUTO_INCREMENT, order_id BIGINT, user_id INT NOT NULL, phone VARCHAR(50), status VARCHAR(50) , PRIMARY KEY (order_item_id));
+        CREATE TABLE IF NOT EXISTS t_order_item (order_item_id BIGINT AUTO_INCREMENT, order_id BIGINT, user_id INT NOT NULL, phone VARCHAR(50), status VARCHAR(50), PRIMARY KEY (order_item_id));
     </update>
     
     <update id="truncateTableShadow">
