@@ -17,9 +17,9 @@
 
 package org.apache.shardingsphere.mode.manager.cluster.coordinator.registry.process;
 
+import org.apache.shardingsphere.infra.instance.metadata.InstanceMetaData;
 import org.apache.shardingsphere.mode.repository.cluster.ClusterPersistRepository;
 import org.apache.shardingsphere.mode.repository.cluster.ClusterPersistRepositoryConfiguration;
-import org.apache.shardingsphere.mode.repository.cluster.LeaderExecutionCallback;
 import org.apache.shardingsphere.mode.repository.cluster.listener.DataChangedEventListener;
 
 import java.util.Collections;
@@ -33,7 +33,7 @@ public final class ProcessListClusterPersistRepositoryFixture implements Cluster
     private static final Map<String, String> REGISTRY_DATA = new LinkedHashMap<>();
     
     @Override
-    public void init(final ClusterPersistRepositoryConfiguration config) {
+    public void init(final ClusterPersistRepositoryConfiguration config, final InstanceMetaData instanceMetaData) {
     }
     
     @Override
@@ -52,10 +52,6 @@ public final class ProcessListClusterPersistRepositoryFixture implements Cluster
     @Override
     public Object getRawCache(final String cachePath) {
         return null;
-    }
-    
-    @Override
-    public void executeInLeader(final String key, final LeaderExecutionCallback callback) {
     }
     
     @Override
