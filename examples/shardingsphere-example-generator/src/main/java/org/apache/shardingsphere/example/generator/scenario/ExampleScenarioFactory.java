@@ -97,6 +97,7 @@ public final class ExampleScenarioFactory {
         }
         result.putAll(frameworkScenario.getResourceTemplateMap());
         result.putAll(transactionScenario.getResourceTemplateMap());
+        result.put("resources/yaml/config.ftl", "config.yaml");
         result.put("resources/logback.ftl", "logback.xml");
         return result;
     }
