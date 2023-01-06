@@ -21,4 +21,4 @@ mode:
     type: etcd
     props:
       namespace: demo_yaml
-      server-lists: localhost:2379
+      server-lists: http://localhost:2379
