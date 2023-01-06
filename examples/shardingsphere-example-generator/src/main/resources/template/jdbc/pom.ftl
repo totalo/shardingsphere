@@ -37,7 +37,14 @@
             <artifactId>shardingsphere-cluster-mode-repository-zookeeper</artifactId>
             <version>${r'${project.version}'}</version>
         </dependency>
+    <#elseif mode=="cluster-etcd">
+        <dependency>
+            <groupId>org.apache.shardingsphere</groupId>
+            <artifactId>shardingsphere-cluster-mode-repository-etcd</artifactId>
+            <version>${r'${project.version}'}</version>
+        </dependency>
     </#if>
+        
     <#if transaction?contains("xa")>
         <dependency>
             <groupId>org.apache.shardingsphere</groupId>
