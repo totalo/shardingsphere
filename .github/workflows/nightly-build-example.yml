@@ -74,13 +74,11 @@ jobs:
         ports:
           - 3306:3306
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
-      if: matrix.mode == 'cluster-zookeeper'
       zookeeper:
         image: zookeeper:3.6.3
         ports:
           - 2181:2181
         options: --health-cmd="echo ruok | nc localhost 2181" --health-interval=10s --health-timeout=5s --health-retries=3
-      elseif: matrix.mode == 'cluster-etcd'
       etcd:
         image: quay.io/coreos/etcd:v3.4.13
         ports:
