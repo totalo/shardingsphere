@@ -43,6 +43,11 @@
             <artifactId>shardingsphere-cluster-mode-repository-etcd</artifactId>
             <version>${r'${project.version}'}</version>
         </dependency>
+        <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-grpc</artifactId>
+            <version>3.4.1</version>
+        </dependency>
     </#if>
         
     <#if transaction?contains("xa")>
