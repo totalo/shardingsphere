@@ -375,10 +375,6 @@
                         <artifactId>annotations</artifactId>
                     </exclusion>
                     <exclusion>
-                        <groupId>io.vertx</groupId>
-                        <artifactId>vertx-grpc</artifactId>
-                    </exclusion>
-                    <exclusion>
                         <groupId>io.netty</groupId>
                         <artifactId>netty-transport-native-unix-common</artifactId>
                     </exclusion>
