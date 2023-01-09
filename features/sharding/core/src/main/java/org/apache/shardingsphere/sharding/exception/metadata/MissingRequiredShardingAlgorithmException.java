@@ -28,6 +28,6 @@ public final class MissingRequiredShardingAlgorithmException extends ShardingSQL
     private static final long serialVersionUID = -1844741171173351747L;
     
     public MissingRequiredShardingAlgorithmException(final String algorithmName, final String databaseName) {
-        super(XOpenSQLState.CHECK_OPTION_VIOLATION, 10, "`%s` sharding algorithm does not exist in database `%s`.", algorithmName, databaseName);
+        super(XOpenSQLState.CHECK_OPTION_VIOLATION, 10, "`%s` algorithm does not exist in database `%s`.", algorithmName, databaseName);
     }
 }
