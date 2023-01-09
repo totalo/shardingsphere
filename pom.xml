@@ -374,10 +374,6 @@
                         <groupId>com.google.android</groupId>
                         <artifactId>annotations</artifactId>
                     </exclusion>
-                    <exclusion>
-                        <groupId>io.netty</groupId>
-                        <artifactId>netty-transport-native-unix-common</artifactId>
-                    </exclusion>
                 </exclusions>
             </dependency>
             
