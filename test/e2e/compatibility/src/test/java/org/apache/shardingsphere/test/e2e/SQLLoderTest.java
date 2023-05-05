@@ -18,6 +18,7 @@
 package org.apache.shardingsphere.test.e2e;
 
 import com.jayway.jsonpath.JsonPath;
+import org.apache.shardingsphere.test.loader.summary.FileSummary;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -110,13 +111,7 @@ public class SQLLoderTest {
             if (resultFileContent.isEmpty()) {
                 continue;
             }
-            Map<String, String> exceptMap = parseResultMap(resultFileContent);
-            
         }
-    }
-    
-    private static Map<String, String> parseResultMap(final String resultFileContent) {
-        
     }
     
     private Collection<Void> createTestParameters(final String sqlCaseFileContent, final String resultFileContent) {
