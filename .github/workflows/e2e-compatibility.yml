@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 
-name: E2E - Pipeline
+name: E2E - Compatibility
 
 on:
   push:
