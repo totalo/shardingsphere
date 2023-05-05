@@ -55,4 +55,8 @@ public abstract class ExternalCompatibilityTestCase {
                     new GitHubTestParameterLoadStrategy()).load(URI.create(settings.caseURL()), URI.create(settings.resultURL()), settings.value(), settings.reportType());
         }
     }
+    
+    private static boolean isEnabled() {
+        return true;
+    }
 }
