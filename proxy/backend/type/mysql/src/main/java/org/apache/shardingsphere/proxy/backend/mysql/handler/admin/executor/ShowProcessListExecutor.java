@@ -25,13 +25,11 @@ import org.apache.shardingsphere.infra.executor.sql.execute.result.query.impl.ra
 import org.apache.shardingsphere.infra.executor.sql.execute.result.query.impl.raw.metadata.RawQueryResultMetaData;
 import org.apache.shardingsphere.infra.executor.sql.execute.result.query.impl.raw.type.RawMemoryQueryResult;
 import org.apache.shardingsphere.infra.executor.sql.execute.result.query.type.memory.row.MemoryQueryResultDataRow;
-import org.apache.shardingsphere.infra.executor.sql.process.yaml.YamlProcessListContexts;
-import org.apache.shardingsphere.infra.executor.sql.process.yaml.YamlProcessContext;
+import org.apache.shardingsphere.infra.executor.sql.process.Process;
 import org.apache.shardingsphere.infra.merge.result.MergedResult;
 import org.apache.shardingsphere.infra.merge.result.impl.transparent.TransparentMergedResult;
-import org.apache.shardingsphere.infra.util.yaml.YamlEngine;
-import org.apache.shardingsphere.mode.event.process.ShowProcessListRequestEvent;
-import org.apache.shardingsphere.mode.event.process.ShowProcessListResponseEvent;
+import org.apache.shardingsphere.mode.process.event.ShowProcessListRequestEvent;
+import org.apache.shardingsphere.mode.process.event.ShowProcessListResponseEvent;
 import org.apache.shardingsphere.proxy.backend.context.ProxyContext;
 import org.apache.shardingsphere.proxy.backend.handler.admin.executor.DatabaseAdminQueryExecutor;
 import org.apache.shardingsphere.proxy.backend.session.ConnectionSession;
@@ -40,7 +38,6 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -51,7 +48,7 @@ import java.util.stream.Collectors;
 @SuppressWarnings("UnstableApiUsage")
 public final class ShowProcessListExecutor implements DatabaseAdminQueryExecutor {
     
-    private Collection<String> batchProcessContexts;
+    private Collection<Process> processes;
     
     @Getter
     private QueryResultMetaData queryResultMetaData;
@@ -70,7 +67,7 @@ public final class ShowProcessListExecutor implements DatabaseAdminQueryExecutor
      */
     @Subscribe
     public void receiveProcessListData(final ShowProcessListResponseEvent event) {
-        batchProcessContexts = event.getBatchProcessContexts();
+        processes = event.getProcesses();
     }
     
     @Override
@@ -81,33 +78,29 @@ public final class ShowProcessListExecutor implements DatabaseAdminQueryExecutor
     
     private QueryResult getQueryResult() {
         ProxyContext.getInstance().getContextManager().getInstanceContext().getEventBusContext().post(new ShowProcessListRequestEvent());
-        if (null == batchProcessContexts || batchProcessContexts.isEmpty()) {
+        if (null == processes || processes.isEmpty()) {
             return new RawMemoryQueryResult(queryResultMetaData, Collections.emptyList());
         }
-        Collection<YamlProcessContext> processContexts = new LinkedList<>();
-        for (String each : batchProcessContexts) {
-            processContexts.addAll(YamlEngine.unmarshal(each, YamlProcessListContexts.class).getContexts());
-        }
-        List<MemoryQueryResultDataRow> rows = processContexts.stream().map(ShowProcessListExecutor::getMemoryQueryResultDataRow).collect(Collectors.toList());
+        List<MemoryQueryResultDataRow> rows = processes.stream().map(ShowProcessListExecutor::getMemoryQueryResultDataRow).collect(Collectors.toList());
         return new RawMemoryQueryResult(queryResultMetaData, rows);
     }
     
-    private static MemoryQueryResultDataRow getMemoryQueryResultDataRow(final YamlProcessContext yamlProcessContext) {
+    private static MemoryQueryResultDataRow getMemoryQueryResultDataRow(final Process process) {
         List<Object> rowValues = new ArrayList<>(8);
-        rowValues.add(yamlProcessContext.getExecutionID());
-        rowValues.add(yamlProcessContext.getUsername());
-        rowValues.add(yamlProcessContext.getHostname());
-        rowValues.add(yamlProcessContext.getDatabaseName());
-        rowValues.add(yamlProcessContext.isExecuting() ? "Execute" : "Sleep");
-        rowValues.add(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - yamlProcessContext.getStartTimeMillis()));
+        rowValues.add(process.getId());
+        rowValues.add(process.getUsername());
+        rowValues.add(process.getHostname());
+        rowValues.add(process.getDatabaseName());
+        rowValues.add(process.isIdle() ? "Sleep" : "Execute");
+        rowValues.add(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - process.getStartMillis()));
         String sql = null;
-        if (!yamlProcessContext.isExecuting()) {
+        if (process.isIdle()) {
             rowValues.add("");
         } else {
-            int processDoneCount = yamlProcessContext.getCompletedUnitCount();
+            int processDoneCount = process.getCompletedUnitCount();
             String statePrefix = "Executing ";
-            rowValues.add(statePrefix + processDoneCount + "/" + yamlProcessContext.getTotalUnitCount());
-            sql = yamlProcessContext.getSql();
+            rowValues.add(statePrefix + processDoneCount + "/" + process.getTotalUnitCount());
+            sql = process.getSql();
         }
         if (null != sql && sql.length() > 100) {
             sql = sql.substring(0, 100);

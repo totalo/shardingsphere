@@ -127,6 +127,8 @@ public final class TranslatableTableScanExecutor implements TableScanExecutor {
     
     private final ShardingSphereData data;
     
+    private final ProcessEngine processEngine = new ProcessEngine();
+    
     @Override
     public Enumerable<Object> executeScalar(final ShardingSphereTable table, final ScanNodeExecutorContext scanContext) {
         String databaseName = executorContext.getDatabaseName().toLowerCase();
@@ -175,12 +177,11 @@ public final class TranslatableTableScanExecutor implements TableScanExecutor {
     
     private AbstractEnumerable<Object> executeScalarEnumerable(final DatabaseType databaseType, final QueryContext queryContext,
                                                                final ShardingSphereDatabase database, final ExecutionContext context) {
-        ProcessEngine processEngine = new ProcessEngine();
         try {
             ExecutionGroupContext<JDBCExecutionUnit> executionGroupContext =
                     prepareEngine.prepare(context.getRouteContext(), context.getExecutionUnits(), new ExecutionGroupReportContext(database.getName()));
             setParameters(executionGroupContext.getInputGroups());
-            processEngine.initializeExecution(executionGroupContext, context.getQueryContext());
+            processEngine.executeSQL(executionGroupContext, context.getQueryContext());
             List<QueryResult> queryResults = execute(executionGroupContext, databaseType);
             MergeEngine mergeEngine = new MergeEngine(database, executorContext.getProps(), new ConnectionContext());
             MergedResult mergedResult = mergeEngine.merge(queryResults, queryContext.getSqlStatementContext());
@@ -189,7 +190,7 @@ public final class TranslatableTableScanExecutor implements TableScanExecutor {
         } catch (final SQLException ex) {
             throw new SQLWrapperException(ex);
         } finally {
-            processEngine.cleanExecution();
+            processEngine.completeSQLExecution();
         }
     }
     
@@ -235,12 +236,11 @@ public final class TranslatableTableScanExecutor implements TableScanExecutor {
     }
     
     private AbstractEnumerable<Object[]> execute(final DatabaseType databaseType, final QueryContext queryContext, final ShardingSphereDatabase database, final ExecutionContext context) {
-        ProcessEngine processEngine = new ProcessEngine();
         try {
             ExecutionGroupContext<JDBCExecutionUnit> executionGroupContext =
                     prepareEngine.prepare(context.getRouteContext(), context.getExecutionUnits(), new ExecutionGroupReportContext(database.getName()));
             setParameters(executionGroupContext.getInputGroups());
-            processEngine.initializeExecution(executionGroupContext, context.getQueryContext());
+            processEngine.executeSQL(executionGroupContext, context.getQueryContext());
             List<QueryResult> queryResults = execute(executionGroupContext, databaseType);
             MergeEngine mergeEngine = new MergeEngine(database, executorContext.getProps(), new ConnectionContext());
             MergedResult mergedResult = mergeEngine.merge(queryResults, queryContext.getSqlStatementContext());
@@ -249,7 +249,7 @@ public final class TranslatableTableScanExecutor implements TableScanExecutor {
         } catch (final SQLException ex) {
             throw new SQLWrapperException(ex);
         } finally {
-            processEngine.cleanExecution();
+            processEngine.completeSQLExecution();
         }
     }
     
