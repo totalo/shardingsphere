@@ -20,20 +20,15 @@ package org.apache.shardingsphere.test.e2e.container;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.shardingsphere.data.pipeline.spi.job.JobType;
 import org.apache.shardingsphere.infra.database.metadata.url.JdbcUrlAppender;
 import org.apache.shardingsphere.infra.database.type.DatabaseType;
 import org.apache.shardingsphere.infra.database.type.dialect.MySQLDatabaseType;
-import org.apache.shardingsphere.test.e2e.ExternalCompatibilityTestParameter;
-import org.apache.shardingsphere.test.e2e.PipelineE2EEnvironment;
 import org.apache.shardingsphere.test.e2e.container.compose.BaseContainerComposer;
 import org.apache.shardingsphere.test.e2e.container.compose.DockerContainerComposer;
-import org.apache.shardingsphere.test.e2e.container.compose.NativeContainerComposer;
 import org.apache.shardingsphere.test.e2e.env.container.atomic.constants.ProxyContainerConstants;
 import org.apache.shardingsphere.test.e2e.env.container.atomic.storage.DockerStorageContainer;
 import org.apache.shardingsphere.test.e2e.env.container.atomic.util.DatabaseTypeUtils;
 import org.apache.shardingsphere.test.e2e.env.container.atomic.util.StorageContainerUtils;
-import org.apache.shardingsphere.test.e2e.env.runtime.DataSourceEnvironment;
 import org.apache.shardingsphere.test.util.PropertiesBuilder;
 import org.apache.shardingsphere.test.util.PropertiesBuilder.Property;
 
@@ -63,25 +58,15 @@ public final class CompatibilityContainerComposer implements AutoCloseable {
     
     private final String password;
     
-    private final DataSource sourceDataSource;
-    
     private final DataSource proxyDataSource;
     
-    public CompatibilityContainerComposer(final ExternalCompatibilityTestParameter testParam, final JobType jobType) {
+    public CompatibilityContainerComposer() {
         databaseType = new MySQLDatabaseType();
-        containerComposer = PipelineE2EEnvironment.getInstance().getItEnvType() == EnvTypeEnum.DOCKER
-                ? new DockerContainerComposer(databaseType)
-                : new NativeContainerComposer(databaseType);
-        if (PipelineE2EEnvironment.getInstance().getItEnvType() == EnvTypeEnum.DOCKER) {
-            DockerStorageContainer storageContainer = ((DockerContainerComposer) containerComposer).getStorageContainer();
-            username = storageContainer.getUsername();
-            password = storageContainer.getPassword();
-        } else {
-            username = PipelineE2EEnvironment.getInstance().getActualDataSourceUsername(databaseType);
-            password = PipelineE2EEnvironment.getInstance().getActualDataSourcePassword(databaseType);
-        }
+        containerComposer = new DockerContainerComposer(databaseType);
+        DockerStorageContainer storageContainer = ((DockerContainerComposer) containerComposer).getStorageContainer();
+        username = storageContainer.getUsername();
+        password = storageContainer.getPassword();
         containerComposer.start();
-        sourceDataSource = StorageContainerUtils.generateDataSource(appendExtraParameter(getActualJdbcUrlTemplate(DS_0, false)), username, password);
         proxyDataSource = StorageContainerUtils.generateDataSource(
                 appendExtraParameter(containerComposer.getProxyJdbcUrl(PROXY_DATABASE)), ProxyContainerConstants.USERNAME, ProxyContainerConstants.PASSWORD);
         init();
@@ -98,9 +83,6 @@ public final class CompatibilityContainerComposer implements AutoCloseable {
     
     @SneakyThrows(InterruptedException.class)
     private void cleanUpProxyDatabase(final Connection connection) {
-        if (EnvTypeEnum.NATIVE != PipelineE2EEnvironment.getInstance().getItEnvType()) {
-            return;
-        }
         try {
             connection.createStatement().execute(String.format("DROP DATABASE IF EXISTS %s", PROXY_DATABASE));
             Thread.sleep(2000L);
@@ -132,23 +114,6 @@ public final class CompatibilityContainerComposer implements AutoCloseable {
             return new JdbcUrlAppender().appendQueryProperties(jdbcUrl, PropertiesBuilder.build(new Property("stringtype", "unspecified")));
         }
         return jdbcUrl;
-    }
-    
-    /**
-     * Get actual JDBC URL template.
-     * 
-     * @param databaseName database name
-     * @param isInContainer is in container
-     * @return actual JDBC URL template
-     */
-    public String getActualJdbcUrlTemplate(final String databaseName, final boolean isInContainer) {
-        if (EnvTypeEnum.DOCKER == PipelineE2EEnvironment.getInstance().getItEnvType()) {
-            DockerStorageContainer storageContainer = ((DockerContainerComposer) containerComposer).getStorageContainer();
-            return isInContainer
-                    ? DataSourceEnvironment.getURL(getDatabaseType(), storageContainer.getNetworkAliases().get(0), storageContainer.getExposedPort(), databaseName)
-                    : storageContainer.getJdbcUrl(databaseName);
-        }
-        return DataSourceEnvironment.getURL(getDatabaseType(), "127.0.0.1", PipelineE2EEnvironment.getInstance().getActualDataSourceDefaultPort(databaseType), databaseName);
     }
     
     @Override

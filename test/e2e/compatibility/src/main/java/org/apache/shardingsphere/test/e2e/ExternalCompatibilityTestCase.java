@@ -18,6 +18,7 @@
 package org.apache.shardingsphere.test.e2e;
 
 import com.google.common.base.Preconditions;
+import org.apache.shardingsphere.test.e2e.container.CompatibilityContainerComposer;
 import org.apache.shardingsphere.test.loader.ExternalCaseSettings;
 import org.apache.shardingsphere.test.loader.strategy.impl.GitHubTestParameterLoadStrategy;
 import org.junit.jupiter.api.condition.EnabledIf;
@@ -29,6 +30,10 @@ import org.junit.jupiter.params.provider.ArgumentsSource;
 
 import java.io.IOException;
 import java.net.URI;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Collection;
 import java.util.stream.Stream;
 
@@ -37,8 +42,17 @@ public abstract class ExternalCompatibilityTestCase {
     @ParameterizedTest(name = "{0} ({1}) -> {2}")
     @EnabledIf("isEnabled")
     @ArgumentsSource(TestCaseArgumentsProvider.class)
-    void assertTest(final String sqlCaseId, final String databaseType, final String sql, final String expect) throws IOException {
-        
+    void assertTest(final String sqlCaseId, final String databaseType, final String sql, final String expect) throws IOException, SQLException {
+        try (CompatibilityContainerComposer containerComposer = new CompatibilityContainerComposer()){
+            try (Connection connection = containerComposer.getProxyDataSource().getConnection();
+                 Statement statement = connection.createStatement()) {
+                boolean result = statement.execute(sql);
+                if (result) {
+                    ResultSet resultSet = statement.getResultSet();
+                    ResultSetPrinter.printResultSet(resultSet);
+                }
+            }
+        }
     }
     
     private static class TestCaseArgumentsProvider implements ArgumentsProvider {
