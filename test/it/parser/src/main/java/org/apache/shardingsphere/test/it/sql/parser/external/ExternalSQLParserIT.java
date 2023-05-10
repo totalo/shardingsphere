@@ -63,7 +63,7 @@ public abstract class ExternalSQLParserIT {
     }
     
     private static boolean isEnabled() {
-        return SQLParserExternalITEnvironment.getInstance().isSqlParserITEnabled();
+        return true;
     }
     
     private static class TestCaseArgumentsProvider implements ArgumentsProvider {

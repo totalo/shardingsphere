@@ -46,7 +46,7 @@ public final class ProxyContainerConfigurationFactory {
         Map<String, String> result = new HashMap<>(2, 1);
         result.putAll(ProxyClusterContainerConfigurationFactory.newInstance().getMountedResources());
         result.put("/env/mysql/server.yaml", ProxyContainerConstants.CONFIG_PATH_IN_CONTAINER + "server.yaml");
-        result.put("/env/logback.xml", ProxyContainerConstants.CONFIG_PATH_IN_CONTAINER + "logback.xml");
+        result.put("/env/logback.xml", ProxyContainerConstants.CONFIG_PATH_IN_CONTAINER + "env/logback.xml");
         return result;
     }
 }
