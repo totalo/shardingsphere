@@ -36,7 +36,7 @@ env:
 
 jobs:
   compatibility:
-    name: E2E - compatibility
+    name: E2E - Compatibility
     runs-on: ubuntu-latest
     env:
       mysql_version: mysql:8.0
@@ -56,7 +56,7 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: 11
-      - name: Build Pipeline E2E image
+      - name: Build Compatibility E2E image
         run: ./mvnw -B clean install -am -pl test/e2e/compatibility -Pit.env.docker -DskipTests
       - name: Setup JDK 8 for Test
         uses: actions/setup-java@v3
@@ -64,4 +64,4 @@ jobs:
           distribution: 'temurin'
           java-version: 8
       - name: Run Compatibility MySQL E2E Test
-        run: ./mvnw -nsu -B install -f test/e2e/compatibility/pom.xml -Dpipeline.it.env.type=docker -Dpipeline.it.docker.mysql.version=${{ env.mysql_version }}
+        run: ./mvnw -nsu -B install -f test/e2e/compatibility/pom.xml -Dcompatibility.it.env.type=docker -Dcompatibility.it.docker.mysql.version=${{ env.mysql_version }}
