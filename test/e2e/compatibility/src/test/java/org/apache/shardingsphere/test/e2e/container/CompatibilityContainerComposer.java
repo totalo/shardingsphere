@@ -62,7 +62,7 @@ public final class CompatibilityContainerComposer implements AutoCloseable {
     
     public CompatibilityContainerComposer() {
         databaseType = new MySQLDatabaseType();
-        containerComposer = new DockerContainerComposer(databaseType);
+        containerComposer = new DockerContainerComposer(databaseType, "mysql:8.0");
         DockerStorageContainer storageContainer = ((DockerContainerComposer) containerComposer).getStorageContainer();
         username = storageContainer.getUsername();
         password = storageContainer.getPassword();

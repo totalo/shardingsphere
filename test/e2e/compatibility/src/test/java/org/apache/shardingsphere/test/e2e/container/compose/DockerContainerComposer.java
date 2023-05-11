@@ -49,7 +49,7 @@ public final class DockerContainerComposer extends BaseContainerComposer {
     @Getter
     private final DockerStorageContainer storageContainer;
     
-    public DockerContainerComposer(final DatabaseType databaseType) {
+    public DockerContainerComposer(final DatabaseType databaseType, String storageContainerImage) {
         this.databaseType = databaseType;
         StorageContainerConfiguration storageContainerConfig;
         if (DatabaseTypeUtils.isMySQL(databaseType)) {
@@ -58,7 +58,7 @@ public final class DockerContainerComposer extends BaseContainerComposer {
         } else {
             storageContainerConfig = StorageContainerConfigurationFactory.newInstance(databaseType);
         }
-        DockerStorageContainer storageContainer = getContainers().registerContainer((DockerStorageContainer) StorageContainerFactory.newInstance(databaseType, "", null,
+        DockerStorageContainer storageContainer = getContainers().registerContainer((DockerStorageContainer) StorageContainerFactory.newInstance(databaseType, storageContainerImage, null,
                     storageContainerConfig));
         storageContainer.setNetworkAliases(Collections.singletonList(String.join(".", databaseType.getType().toLowerCase(), "host")));
         this.storageContainer = storageContainer;
