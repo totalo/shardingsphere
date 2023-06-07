@@ -20,15 +20,9 @@ package org.apache.shardingsphere.authority.model;
 import java.util.Collection;
 
 /**
- * ShardingSphere Privileges.
- * shardingsphere 权限接口
+ * ShardingSphere privileges.
  */
 public interface ShardingSpherePrivileges {
-    
-    /**
-     * Set super privilege.
-     */
-    void setSuperPrivilege();
     
     /**
      * Has privileges.
