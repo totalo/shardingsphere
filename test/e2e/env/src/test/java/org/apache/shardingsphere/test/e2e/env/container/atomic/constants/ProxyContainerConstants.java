@@ -26,9 +26,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ProxyContainerConstants {
     
-    public static final String USERNAME = "proxy";
+    public static final String USERNAME = "root";
     
-    public static final String PASSWORD = "Proxy@123";
+    public static final String PASSWORD = "root";
     
     public static final String AGENT_HOME_IN_CONTAINER = "/usr/local/shardingsphere-agent";
     

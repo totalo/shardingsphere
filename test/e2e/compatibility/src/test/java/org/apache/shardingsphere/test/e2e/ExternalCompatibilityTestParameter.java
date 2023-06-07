@@ -17,23 +17,25 @@
 
 package org.apache.shardingsphere.test.e2e;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 
 /**
  * External SQL parser test parameter.
  */
-@RequiredArgsConstructor
+@AllArgsConstructor
 @Getter
+@Setter
 public final class ExternalCompatibilityTestParameter {
     
-    private final String sqlCaseId;
+    private String sqlCaseId;
     
-    private final String databaseType;
+    private String databaseType;
     
-    private final String sql;
+    private String sql;
     
-    private final String expected;
+    private String expected;
     
-    private final String reportType;
+    private String reportType;
 }

@@ -23,8 +23,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.shardingsphere.infra.database.metadata.url.JdbcUrlAppender;
 import org.apache.shardingsphere.infra.database.type.DatabaseType;
 import org.apache.shardingsphere.infra.database.type.dialect.MySQLDatabaseType;
+import org.apache.shardingsphere.test.e2e.CompatibilityE2EEnvironment;
 import org.apache.shardingsphere.test.e2e.container.compose.BaseContainerComposer;
 import org.apache.shardingsphere.test.e2e.container.compose.DockerContainerComposer;
+import org.apache.shardingsphere.test.e2e.container.compose.NativeContainerComposer;
 import org.apache.shardingsphere.test.e2e.env.container.atomic.constants.ProxyContainerConstants;
 import org.apache.shardingsphere.test.e2e.env.container.atomic.storage.DockerStorageContainer;
 import org.apache.shardingsphere.test.e2e.env.container.atomic.util.DatabaseTypeUtils;
@@ -62,14 +64,20 @@ public final class CompatibilityContainerComposer implements AutoCloseable {
     
     public CompatibilityContainerComposer() {
         databaseType = new MySQLDatabaseType();
-        containerComposer = new DockerContainerComposer(databaseType, "mysql:8.0");
-        DockerStorageContainer storageContainer = ((DockerContainerComposer) containerComposer).getStorageContainer();
-        username = storageContainer.getUsername();
-        password = storageContainer.getPassword();
+        if (CompatibilityE2EEnvironment.getInstance().getItEnvType() == EnvTypeEnum.DOCKER) {
+            containerComposer = new DockerContainerComposer(databaseType, "mysql:8.0");
+            DockerStorageContainer storageContainer = ((DockerContainerComposer) containerComposer).getStorageContainer();
+            username = storageContainer.getUsername();
+            password = storageContainer.getPassword();
+        } else {
+            containerComposer = new NativeContainerComposer(new MySQLDatabaseType());
+            username = "root";
+            password = "root";
+        }
         containerComposer.start();
         proxyDataSource = StorageContainerUtils.generateDataSource(
-                appendExtraParameter(containerComposer.getProxyJdbcUrl(PROXY_DATABASE)), ProxyContainerConstants.USERNAME, ProxyContainerConstants.PASSWORD);
-        init();
+                appendExtraParameter("jdbc:mysql://127.0.0.1:3307/proxy_db?userSSL=false"), ProxyContainerConstants.USERNAME, ProxyContainerConstants.PASSWORD);
+        // init();
     }
     
     @SneakyThrows(SQLException.class)

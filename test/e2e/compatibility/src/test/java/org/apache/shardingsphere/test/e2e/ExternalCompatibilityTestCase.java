@@ -50,6 +50,9 @@ public abstract class ExternalCompatibilityTestCase {
                 boolean result = statement.execute(sql);
                 if (result) {
                     ResultSet resultSet = statement.getResultSet();
+                    ResultSetPrinter.printResultSet(resultSet);
+                } else {
+                    
                 }
             }
     }

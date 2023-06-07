@@ -21,8 +21,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.shardingsphere.test.loader.AbstractTestParameterLoader;
 import org.apache.shardingsphere.test.loader.strategy.TestParameterLoadStrategy;
 
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedList;
+import java.util.List;
 
 /**
  * External SQL parser test parameter loader.
@@ -36,7 +37,7 @@ public final class ExternalCompatibilityTestParameterLoader extends AbstractTest
     
     public Collection<ExternalCompatibilityTestParameter> createTestParameters(final String sqlCaseFileName,
                                                                             final String sqlCaseFileContent, final String resultFileContent, final String databaseType, final String reportType) {
-        Collection<ExternalCompatibilityTestParameter> result = new LinkedList<>();
+        List<ExternalCompatibilityTestParameter> result = new ArrayList<>();
         String[] rawCaseLines = sqlCaseFileContent.split("\n");
         String[] rawResultLines = resultFileContent.split("\n");
         String completedSQL = "";
@@ -49,9 +50,20 @@ public final class ExternalCompatibilityTestParameterLoader extends AbstractTest
             completedSQL = getStatement(completedSQL, each.trim(), inProcedure);
             statementLines = completedSQL.isEmpty() ? 0 : statementLines + 1;
             if (completedSQL.contains(";") && !inProcedure) {
+                int preResultStartIndex = resultIndex;
                 resultIndex = searchInResultContent(resultIndex, rawResultLines, completedSQL, statementLines);
+                int preResultEndIndex = resultIndex - statementLines;
+                StringBuilder expected = new StringBuilder();
+                for (int i = preResultStartIndex; preResultStartIndex != 0 && i < preResultEndIndex; i++) {
+                    if (!rawResultLines[i].isEmpty() && !isComment(rawResultLines[i])) {
+                        expected.append(rawResultLines[i]).append("\n");
+                    }
+                }
                 if (resultIndex >= rawResultLines.length || !rawResultLines[resultIndex].contains("ERROR")) {
                     String sqlCaseId = sqlCaseFileName + sqlCaseEnum;
+                    if (result.size() > 0) {
+                        result.get(result.size() - 1).setExpected(expected.toString());
+                    }
                     result.add(new ExternalCompatibilityTestParameter(sqlCaseId, databaseType, completedSQL, "", reportType));
                     sqlCaseEnum++;
                 }

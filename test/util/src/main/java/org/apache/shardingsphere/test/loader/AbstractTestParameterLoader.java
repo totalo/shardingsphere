@@ -61,6 +61,9 @@ public abstract class AbstractTestParameterLoader<T> {
             String sqlCaseFileContent = loadContent(URI.create(each.getValue().getAccessURI()));
             String resultFileContent = resultFileSummaries.containsKey(fileName) ? loadContent(URI.create(resultFileSummaries.get(fileName).getAccessURI())) : "";
             result.addAll(createTestParameters(fileName, sqlCaseFileContent, resultFileContent, databaseType, reportType));
+            if (result.size() >= 100) {
+                break;
+            }
         }
         return result;
     }
