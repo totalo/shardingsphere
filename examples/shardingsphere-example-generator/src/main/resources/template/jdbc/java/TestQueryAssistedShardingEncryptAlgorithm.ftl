@@ -20,23 +20,19 @@ package org.apache.shardingsphere.example.${package}.${framework?replace('-', '.
 
 import lombok.Getter;
 import lombok.Setter;
-import org.apache.shardingsphere.encrypt.spi.EncryptAlgorithm;
-import org.apache.shardingsphere.encrypt.spi.context.EncryptContext;
+import org.apache.shardingsphere.encrypt.api.context.EncryptContext;
+import org.apache.shardingsphere.encrypt.api.encrypt.assisted.AssistedEncryptAlgorithm;
 
 import java.util.Properties;
 
-public final class TestQueryAssistedShardingEncryptAlgorithm implements EncryptAlgorithm<Object, String> {
-
+public final class TestQueryAssistedShardingEncryptAlgorithm implements AssistedEncryptAlgorithm<Object, String> {
+    
+    @Getter
     private Properties props;
     
     @Override
     public String encrypt(final Object plainValue, final EncryptContext encryptContext) {
         return "assistedEncryptValue";
-    }
-    
-    @Override
-    public Object decrypt(final String cipherValue, final EncryptContext encryptContext) {
-        return "decryptValue";
     }
     
     @Override

@@ -22,19 +22,19 @@
     <#include "mode/${mode}.ftl" />
 </#if>
 
-rules:
-  - !AUTHORITY
-    users:
-      - root@:root
-      - sharding@:sharding
-    provider:
-      type: ALL_PERMITTED
+authority:
+  users:
+    - user: root
+      password: root
+    - user: sharding
+      password: sharding
+  privilege:
+    type: ALL_PERMITTED
 
 props:
   max-connections-size-per-query: 1
   executor-size: 16  # Infinite by default.
   proxy-frontend-flush-threshold: 128  # The default value is 128.
-  proxy-hint-enabled: false
   sql-show: false
   check-table-metadata-enabled: false
   sql-simple: false

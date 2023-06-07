@@ -2,21 +2,23 @@
 
 **Official Website:** [https://shardingsphere.apache.org/](https://shardingsphere.apache.org/)
 
-[![License](https://img.shields.io/badge/license-Apache%202-4EB1BA.svg)](https://www.apache.org/licenses/LICENSE-2.0.html)
 [![GitHub release](https://img.shields.io/github/release/apache/shardingsphere.svg)](https://github.com/apache/shardingsphere/releases)
-[![Build Status](https://api.travis-ci.org/apache/shardingsphere.svg?branch=master&status=created)](https://travis-ci.org/apache/shardingsphere)
-[![codecov](https://codecov.io/gh/apache/shardingsphere/branch/master/graph/badge.svg)](https://codecov.io/gh/apache/shardingsphere)
-[![snyk](https://snyk.io/test/github/apache/shardingsphere/badge.svg?targetFile=pom.xml)](https://snyk.io/test/github/apache/shardingsphere?targetFile=pom.xml)
-[![Maintainability](https://cloud.quality-gate.com/dashboard/api/badge?projectName=apache_shardingsphere&branchName=master)](https://cloud.quality-gate.com/dashboard/branches/30#overview)
-[![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/5394/badge)](https://bestpractices.coreinfrastructure.org/projects/5394)
-[![OpenTracing-1.0 Badge](https://img.shields.io/badge/OpenTracing--1.0-enabled-blue.svg)](http://opentracing.io)
-[![Skywalking Tracing](https://img.shields.io/badge/Skywalking%20Tracing-enable-brightgreen.svg)](https://github.com/apache/skywalking)
+[![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=apache_shardingsphere&metric=ncloc)](https://sonarcloud.io/summary/new_code?id=apache_shardingsphere)
 
-[![Twitter](https://img.shields.io/twitter/url/https/twitter.com/ShardingSphere.svg?style=social&label=Follow%20%40ShardingSphere)](https://twitter.com/ShardingSphere)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=apache_shardingsphere&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=apache_shardingsphere)
+[![Technical Debt](https://sonarcloud.io/api/project_badges/measure?project=apache_shardingsphere&metric=sqale_index)](https://sonarcloud.io/summary/new_code?id=apache_shardingsphere)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=apache_shardingsphere&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=apache_shardingsphere)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=apache_shardingsphere&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=apache_shardingsphere)
+[![codecov](https://codecov.io/gh/apache/shardingsphere/branch/master/graph/badge.svg)](https://codecov.io/gh/apache/shardingsphere)
+
+[![OpenSSF Best Practices](https://bestpractices.coreinfrastructure.org/projects/5394/badge)](https://bestpractices.coreinfrastructure.org/projects/5394)
+
 [![Slack](https://img.shields.io/badge/%20Slack-ShardingSphere%20Channel-blueviolet)](https://join.slack.com/t/apacheshardingsphere/shared_invite/zt-sbdde7ie-SjDqo9~I4rYcR18bq0SYTg)
 [![Gitter](https://badges.gitter.im/shardingsphere/shardingsphere.svg)](https://gitter.im/shardingsphere/Lobby)
 
-| **Stargazers Over Time**                                                                                              | **Contributors Over Time**                                                                                                                                                                                                                       |
+[![Twitter](https://img.shields.io/twitter/url/https/twitter.com/ShardingSphere.svg?style=social&label=Follow%20%40ShardingSphere)](https://twitter.com/ShardingSphere)
+
+|                                               **Stargazers Over Time**                                                | **Contributors Over Time**                                                                                                                                                                                                                       |
 |:---------------------------------------------------------------------------------------------------------------------:|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
 | [![Stargazers over time](https://starchart.cc/apache/shardingsphere.svg)](https://starchart.cc/apache/shardingsphere) | [![Contributor over time](https://contributor-graph-api.apiseven.com/contributors-svg?chart=contributorOverTime&repo=apache/shardingsphere)](https://www.apiseven.com/en/contributor-graph?chart=contributorOverTime&repo=apache/shardingsphere) |
 
@@ -40,7 +42,9 @@ The concepts at the core of the project are `Connect`, `Enhance` and `Pluggable`
 Virtually all databases are [supported](https://shardingsphere.apache.org/document/current/en/dev-manual/data-source/) including [MySQL](https://www.mysql.com), [PostgreSQL](https://www.postgresql.org), [SQL Server](https://www.microsoft.com/en-us/sql-server/sql-server-downloads), [Oracle Database](https://www.oracle.com/database/), [MariaDB](https://mariadb.org) or any other SQL-92 database.
 
 ShardingSphere became an [Apache](https://apache.org/index.html#projects-list) Top-Level Project on April 16, 2020.
- 
+
+So far, ShardingSphere has been used by over [10,000 projects on GitHub](https://github.com/search?l=Maven+POM&q=shardingsphere+language%3A%22Maven+POM%22&type=Code).
+
 ### DOCUMENTATION📜
 
 <hr>
@@ -54,7 +58,14 @@ For full documentation & more details, visit: [Docs](https://shardingsphere.apac
 
 <hr>
 
-For guides on how to get started and setup your environment, contributor & committer guides, visit: [Contribution Guidelines](https://shardingsphere.apache.org/community/en/contribute/)
+For guides on how to get started and setup your environment, contributor & committer guides, visit: [Contribution Guidelines](https://shardingsphere.apache.org/community/en/involved/)
+
+Good news! We'll be taking part in [Hacktoberfest 2022](https://hacktoberfest.com) 🍻🎉 Hacktoberfest is for everyone. 
+
+Whether it's your first time, you're a seasoned PRO - it's almost time to get hacking, chase those pull/merge requests and complete your mission in supporting open source.
+
+You can find the issues we've prepared for this year's Hacktoberfest [here](https://github.com/apache/shardingsphere/issues?q=is%3Aopen+is%3Aissue+label%3Ahacktoberfest).
+
 
 ### Team
 
@@ -68,7 +79,7 @@ We deeply appreciate [community contributors](https://shardingsphere.apache.org/
 
 <hr>
 
-:link: [Mailing List](https://shardingsphere.apache.org/community/en/contribute/subscribe/). Best for: Apache community updates, releases, changes.
+:link: [Mailing List](https://shardingsphere.apache.org/community/en/involved/subscribe/). Best for: Apache community updates, releases, changes.
 
 :link: [GitHub Issues](https://github.com/apache/shardingsphere/issues). Best for: larger systemic questions/bug reports or anything development related.
 
@@ -78,19 +89,21 @@ We deeply appreciate [community contributors](https://shardingsphere.apache.org/
 
 :link: [Twitter](https://twitter.com/ShardingSphere). Best for: keeping up to date on everything ShardingSphere.
 
+:link: [LinkedIn](https://www.linkedin.com/showcase/apache-shardingsphere/e). Best for: professional networking and career development with other ShardingSphere contributors.
+
 ##
 
 ### STATUS👀
 
 <hr>
 
-:white_check_mark: Version 5.1.2: released :tada:
+:white_check_mark: Version 5.3.2: released :tada:
 
 🔗 For the release notes, follow this link to the relevant [GitHub page](https://github.com/apache/shardingsphere/blob/master/RELEASE-NOTES.md).
 
-:soon: Version 5.1.3
+:soon: Version 5.3.3
 
-We are currently working towards our 5.1.3 milestone. 
+We are currently working towards our 5.3.3 milestone. 
 Keep an eye on the [milestones page](https://github.com/apache/shardingsphere/milestones) of this repo to stay up to date.
 
 [comment]: <> (##)
@@ -140,7 +153,7 @@ With the client end connecting directly to the database, it provides services in
 <hr>
 
 [![Nightly-Download](https://img.shields.io/static/v1?label=nightly-builds&message=download&color=orange)](https://nightlies.apache.org/shardingsphere/)
-[![Download](https://img.shields.io/badge/release-download-orange.svg)](https://www.apache.org/dyn/closer.lua/shardingsphere/5.1.2/apache-shardingsphere-5.1.2-shardingsphere-proxy-bin.tar.gz)
+[![Download](https://img.shields.io/badge/release-download-orange.svg)](https://www.apache.org/dyn/closer.lua/shardingsphere/5.3.2/apache-shardingsphere-5.3.2-shardingsphere-proxy-bin.tar.gz)
 [![Docker Pulls](https://img.shields.io/docker/pulls/apache/shardingsphere-proxy.svg)](https://store.docker.com/community/images/apache/shardingsphere-proxy)
 
 A transparent database proxy, providing a database server that encapsulates database binary protocol to support heterogeneous languages. 
@@ -165,13 +178,13 @@ Through the mixed use of ShardingSphere-JDBC & ShardingSphere-Proxy together wit
 
 <hr>
 
-| *Solutions/Features* |  *Distributed Database* | *Data Security*      | *Database Gateway*                | *Stress Testing* |
-| -------------------- | ----------------------- | ---------------------| --------------------------------- | ---------------- |
-|                      | Data Sharding           | Data Encrypt         | Heterogeneous Databases Supported | Shadow Database  |
-|                      | Readwrite-splitting     | Row Authority (TODO) | SQL Dialect Translate (TODO)      | Observability    |
+| *Solutions/Features* | *Distributed Database*  | *Data Security*      | *Database Gateway*                | *Stress Testing* |
+|----------------------|-------------------------|----------------------|-----------------------------------|------------------|
+|                      | Data Sharding           | Data Encryption      | Heterogeneous Databases Supported | Shadow Database  |
+|                      | Read/write Splitting    | Row Authority (TODO) | SQL Dialect Translate (TODO)      | Observability    |
 |                      | Distributed Transaction | SQL Audit (TODO)     |                                   |                  |
 |                      | Elastic Scale-out       | SQL Firewall (TODO)  |                                   |                  |
-|                      | Highly Available        |                      |                                   |                  |
+|                      | High Availability       |                      |                                   |                  |
 
 ##
 
@@ -179,7 +192,7 @@ Through the mixed use of ShardingSphere-JDBC & ShardingSphere-Proxy together wit
 
 <hr>
 
-![Roadmap](https://shardingsphere.apache.org/document/current/img/roadmap_v2.png)
+![Roadmap](https://shardingsphere.apache.org/document/current/img/roadmap_en.png)
 
 ##
 

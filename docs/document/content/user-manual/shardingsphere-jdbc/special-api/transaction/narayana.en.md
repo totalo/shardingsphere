@@ -74,26 +74,7 @@ See [Narayana's Official Documentation](https://narayana.io/documentation/index.
 Yaml:
 
 ```yaml
-- !TRANSACTION
+transaction:
   defaultType: XA
   providerType: Narayana
-```
-
-SpringBoot:
-
-```yaml
-spring:
-  shardingsphere:
-    props:
-      xa-transaction-manager-type: Narayana
-```
-
-Spring Namespace:
-
-```xml
-<shardingsphere:data-source id="xxx" data-source-names="xxx" rule-refs="xxx">
-    <props>
-        <prop key="xa-transaction-manager-type">Narayana</prop>
-    </props>
-</shardingsphere:data-source>
 ```

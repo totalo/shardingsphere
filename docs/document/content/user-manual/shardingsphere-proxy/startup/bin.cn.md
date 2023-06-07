@@ -34,13 +34,13 @@ ShardingSphere-Proxy 支持配置多个逻辑数据源，每个以 `config-` 前
 
 如果后端连接 PostgreSQL 或 openGauss 数据库，不需要引入额外依赖。
 
-如果后端连接 MySQL 数据库，请下载 [mysql-connector-java-5.1.47.jar](https://repo1.maven.org/maven2/mysql/mysql-connector-java/5.1.47/mysql-connector-java-5.1.47.jar) 或者 [mysql-connector-java-8.0.11.jar](https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.11/mysql-connector-java-8.0.11.jar)，并将其放入 `ext-lib` 目录。
+如果后端连接 MySQL 数据库，请下载 [mysql-connector-java-5.1.49.jar](https://repo1.maven.org/maven2/mysql/mysql-connector-java/5.1.49/mysql-connector-java-5.1.49.jar) 或者 [mysql-connector-java-8.0.11.jar](https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.11/mysql-connector-java-8.0.11.jar)，并将其放入 `ext-lib` 目录。
 
 5. （可选）引入集群模式所需依赖
 
 ShardingSphere-Proxy 默认集成 ZooKeeper Curator 客户端，集群模式使用 ZooKeeper 无须引入其他依赖。
 
-如果集群模式使用 Etcd，需要将 Etcd 的客户端驱动程序 [jetcd-core 0.5.0](https://repo1.maven.org/maven2/io/etcd/jetcd-core/0.5.0/jetcd-core-0.5.0.jar) 复制至目录 `ext-lib`。
+如果集群模式使用 Etcd，需要将 Etcd 的客户端驱动程序 [jetcd-core 0.7.3](https://repo1.maven.org/maven2/io/etcd/jetcd-core/0.7.3/jetcd-core-0.7.3.jar) 复制至目录 `ext-lib`。
 
 6. （可选）引入分布式事务所需依赖
 

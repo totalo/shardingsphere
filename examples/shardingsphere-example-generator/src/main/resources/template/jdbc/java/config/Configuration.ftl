@@ -21,13 +21,18 @@ package org.apache.shardingsphere.example.${package}.${framework}.config;
 import com.zaxxer.hikari.HikariDataSource;
 import org.apache.shardingsphere.driver.api.ShardingSphereDataSourceFactory;
 import org.apache.shardingsphere.infra.config.props.ConfigurationPropertyKey;
-import org.apache.shardingsphere.infra.config.RuleConfiguration;
-<#if feature?contains("sharding")>
-import org.apache.shardingsphere.infra.config.algorithm.ShardingSphereAlgorithmConfiguration;
+import org.apache.shardingsphere.infra.config.rule.RuleConfiguration;
 import org.apache.shardingsphere.infra.config.mode.ModeConfiguration;
+<#if mode=="standalone">
 import org.apache.shardingsphere.mode.repository.standalone.StandalonePersistRepositoryConfiguration;
+<#else>
+import org.apache.shardingsphere.mode.repository.cluster.ClusterPersistRepositoryConfiguration;
+</#if>
+<#if feature?contains("sharding")>
+import org.apache.shardingsphere.infra.config.algorithm.AlgorithmConfiguration;
 import org.apache.shardingsphere.sharding.api.config.ShardingRuleConfiguration;
 import org.apache.shardingsphere.sharding.api.config.rule.ShardingTableRuleConfiguration;
+import org.apache.shardingsphere.sharding.api.config.strategy.audit.ShardingAuditStrategyConfiguration;
 import org.apache.shardingsphere.sharding.api.config.strategy.keygen.KeyGenerateStrategyConfiguration;
 import org.apache.shardingsphere.sharding.api.config.strategy.sharding.StandardShardingStrategyConfiguration;
 </#if>
@@ -36,25 +41,24 @@ import org.apache.shardingsphere.readwritesplitting.api.ReadwriteSplittingRuleCo
 import org.apache.shardingsphere.readwritesplitting.api.rule.ReadwriteSplittingDataSourceRuleConfiguration;
 </#if>
 <#if feature?contains("encrypt")>
-import org.apache.shardingsphere.infra.config.algorithm.ShardingSphereAlgorithmConfiguration;
+import org.apache.shardingsphere.infra.config.algorithm.AlgorithmConfiguration;
 import org.apache.shardingsphere.encrypt.api.config.EncryptRuleConfiguration;
 import org.apache.shardingsphere.encrypt.api.config.rule.EncryptColumnRuleConfiguration;
 import org.apache.shardingsphere.encrypt.api.config.rule.EncryptTableRuleConfiguration;
 </#if>
 <#if feature?contains("shadow")>
-import org.apache.shardingsphere.infra.config.RuleConfiguration;
-import org.apache.shardingsphere.infra.config.algorithm.ShardingSphereAlgorithmConfiguration;
+import org.apache.shardingsphere.infra.config.algorithm.AlgorithmConfiguration;
 import org.apache.shardingsphere.shadow.api.config.ShadowRuleConfiguration;
 import org.apache.shardingsphere.shadow.api.config.datasource.ShadowDataSourceConfiguration;
 import org.apache.shardingsphere.shadow.api.config.table.ShadowTableConfiguration;
 import org.apache.shardingsphere.parser.config.SQLParserRuleConfiguration;
-import org.apache.shardingsphere.parser.rule.builder.DefaultSQLParserRuleConfigurationBuilder;
+import org.apache.shardingsphere.sql.parser.api.CacheOption;
 </#if>
-<#if feature?contains("db-discovery")>
-import org.apache.shardingsphere.dbdiscovery.api.config.DatabaseDiscoveryRuleConfiguration;
-import org.apache.shardingsphere.dbdiscovery.api.config.rule.DatabaseDiscoveryDataSourceRuleConfiguration;
-import org.apache.shardingsphere.dbdiscovery.api.config.rule.DatabaseDiscoveryHeartBeatConfiguration;
-import org.apache.shardingsphere.infra.config.algorithm.ShardingSphereAlgorithmConfiguration;
+<#if feature?contains("mask")>
+import org.apache.shardingsphere.infra.config.algorithm.AlgorithmConfiguration;
+import org.apache.shardingsphere.mask.api.config.MaskRuleConfiguration;
+import org.apache.shardingsphere.mask.api.config.rule.MaskColumnRuleConfiguration;
+import org.apache.shardingsphere.mask.api.config.rule.MaskTableRuleConfiguration;    
 </#if>
 <#if transaction!="local">
 import org.apache.shardingsphere.transaction.config.TransactionRuleConfiguration;
@@ -86,21 +90,25 @@ public final class Configuration {
     
     private static ModeConfiguration createModeConfiguration() {
     <#if mode=="cluster-zookeeper">
-        return new ModeConfiguration("Cluster", new ClusterPersistRepositoryConfiguration("ZooKeeper", "governance-sharding-data-source", "localhost:2181", new Properties()), true);
+        return new ModeConfiguration("Cluster", new ClusterPersistRepositoryConfiguration("ZooKeeper", "governance-sharding-data-source", "localhost:2181", new Properties()));
     </#if>
     <#if mode=="cluster-etcd">
-        return new ModeConfiguration("Cluster", new ClusterPersistRepositoryConfiguration("etcd", "governance-sharding-data-source", "localhost:2379", new Properties()), true);
+        return new ModeConfiguration("Cluster", new ClusterPersistRepositoryConfiguration("etcd", "governance-sharding-data-source", "localhost:2379", new Properties()));
     </#if>
     <#if mode=="standalone">
-        return new ModeConfiguration("Standalone", new StandalonePersistRepositoryConfiguration("H2", new Properties()), true);
+        return new ModeConfiguration("Standalone", new StandalonePersistRepositoryConfiguration("JDBC", new Properties()));
     </#if> 
     }
     
     private Map<String, DataSource> createDataSourceMap() {
         Map<String, DataSource> result = new LinkedHashMap<>();
         result.put("ds_0", createDataSource("demo_ds_0"));
+    <#if feature!="encrypt" && feature!="mask">
         result.put("ds_1", createDataSource("demo_ds_1"));
+        <#if feature!="shadow">
         result.put("ds_2", createDataSource("demo_ds_2"));
+        </#if>
+    </#if>
         return result;
     }
     
@@ -118,9 +126,6 @@ public final class Configuration {
     <#if transaction!="local">
         result.add(createTransactionRuleConfiguration());
     </#if>
-    <#if feature?contains("db-discovery")>
-        result.add(createDatabaseDiscoveryRuleConfiguration());
-    </#if>
     <#if feature?contains("encrypt")>
         result.add(createEncryptRuleConfiguration());
     </#if>
@@ -133,6 +138,9 @@ public final class Configuration {
     </#if>
     <#if feature?contains("sharding")>
         result.add(createShardingRuleConfiguration());
+    </#if>
+    <#if feature?contains("mask")>
+        result.add(createMaskRuleConfiguration());
     </#if>
         return result; 
     }

@@ -9,8 +9,11 @@ ShardingSphere provides three modes for distributed transactions `LOCAL`, `XA`, 
 
 ## Parameters
 
-- defaultType: transaction mode, optional value `LOCAL`/`XA`/`BASE`.
-- providerType: specific implementation of the mode.
+```yaml
+transaction:
+  defaultType: # Transaction mode, optional value LOCAL/XA/BASE
+  providerType: # Specific implementation of the mode
+```
 
 ## Procedure
 
@@ -19,9 +22,8 @@ ShardingSphere provides three modes for distributed transactions `LOCAL`, `XA`, 
 The content of the server.yaml configuration file is as follows:
 
 ```yaml
-rules:
-  - !TRANSACTION
-    defaultType: LOCAL
+transaction:
+  defaultType: LOCAL
 ```
 
 ### Use XA Mode
@@ -29,10 +31,9 @@ rules:
 The content of the server.yaml configuration file is as follows:
 
 ```yaml
-rules:
-  - !TRANSACTION
-    defaultType: XA
-    providerType: Narayana/Atomikos 
+transaction:
+  defaultType: XA
+  providerType: Narayana/Atomikos 
 ```
 To manually add Narayana-related dependencies:
 
@@ -53,10 +54,9 @@ shardingsphere-transaction-xa-narayana-x.x.x-SNAPSHOT.jar
 The content of the server.yaml configuration file is as follows:
 
 ```yaml
-rules:
-  - !TRANSACTION
-    defaultType: BASE
-    providerType: Seata 
+transaction:
+  defaultType: BASE
+  providerType: Seata 
 ```
 
 Build a Seata Server, add relevant configuration files and Seata dependencies, see [ShardingSphere Integrates Seata Flexible Transactions](https://community.sphere-ex.com/t/topic/404)

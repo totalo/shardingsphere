@@ -15,18 +15,20 @@ weight = 1
 
 可配置属性：
 
-| *名称*                               | *数据类型*                                          | *说明*               | *默认值* |
-| ----------------------------------- | --------------------------------------------------- | ------------------- | ------- |
-| tables (+)                          | Collection\<ShardingTableRuleConfiguration\>        | 分片表规则列表        | -       |
-| autoTables (+)                      | Collection\<ShardingAutoTableRuleConfiguration\>    | 自动分片表规则列表    | -       |
-| bindingTableGroups (*)              | Collection\<String\>                                | 绑定表规则列表        | 无       |
-| broadcastTables (*)                 | Collection\<String\>                                | 广播表规则列表        | 无       |
-| defaultDatabaseShardingStrategy (?) | ShardingStrategyConfiguration                       | 默认分库策略          | 不分片   |
-| defaultTableShardingStrategy (?)    | ShardingStrategyConfiguration                       | 默认分表策略          | 不分片   |
-| defaultKeyGenerateStrategy (?)      | KeyGeneratorConfiguration                           | 默认自增列生成器配置   | 雪花算法 |
-| defaultShardingColumn (?)           | String                                              | 默认分片列名称        | 无      |
-| shardingAlgorithms (+)              | Map\<String, ShardingSphereAlgorithmConfiguration\> | 分片算法名称和配置     | 无      |
-| keyGenerators (?)                   | Map\<String, ShardingSphereAlgorithmConfiguration\> | 自增列生成算法名称和配置 | 无      |
+| *名称*                                | *数据类型*                                           | *说明*         | *默认值* |
+|-------------------------------------|--------------------------------------------------|--------------|-------|
+| tables (+)                          | Collection\<ShardingTableRuleConfiguration\>     | 分片表规则列表      | -     |
+| autoTables (+)                      | Collection\<ShardingAutoTableRuleConfiguration\> | 自动分片表规则列表    | -     |
+| bindingTableGroups (*)              | Collection\<String\>                             | 绑定表规则列表      | 无     |
+| broadcastTables (*)                 | Collection\<String\>                             | 广播表规则列表      | 无     |
+| defaultDatabaseShardingStrategy (?) | ShardingStrategyConfiguration                    | 默认分库策略       | 不分片   |
+| defaultTableShardingStrategy (?)    | ShardingStrategyConfiguration                    | 默认分表策略       | 不分片   |
+| defaultKeyGenerateStrategy (?)      | KeyGeneratorConfiguration                        | 默认自增列生成器配置   | 雪花算法  |
+| defaultAuditStrategy (?)            | ShardingAuditStrategyConfiguration               | 默认分片审计策略配置   | 强制分片键 |
+| defaultShardingColumn (?)           | String                                           | 默认分片列名称      | 无     |
+| shardingAlgorithms (+)              | Map\<String, AlgorithmConfiguration\>            | 分片算法名称和配置    | 无     |
+| keyGenerators (?)                   | Map\<String, AlgorithmConfiguration\>            | 自增列生成算法名称和配置 | 无     |
+| auditors (?)                        | Map\<String, AlgorithmConfiguration\>            | 分片审计算法名称和配置  | 无     |
 
 ### 分片表配置
 
@@ -34,13 +36,14 @@ weight = 1
 
 可配置属性：
 
-| *名称*                        | *数据类型*                     | *说明*                                                            | *默认值*                                                                            |
-| ---------------------------- | ----------------------------- | ----------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| logicTable                   | String                        | 分片逻辑表名称                                                      | -                                                                                  |
-| actualDataNodes (?)          | String                        | 由数据源名 + 表名组成，以小数点分隔。<br />多个表以逗号分隔，支持行表达式 | 使用已知数据源与逻辑表名称生成数据节点，用于广播表或只分库不分表且所有库的表结构完全一致的情况 |
-| databaseShardingStrategy (?) | ShardingStrategyConfiguration | 分库策略                                                           | 使用默认分库策略                                                                     |
-| tableShardingStrategy (?)    | ShardingStrategyConfiguration | 分表策略                                                           | 使用默认分表策略                                                                     |
-| keyGenerateStrategy (?)      | KeyGeneratorConfiguration     | 自增列生成器                                                        | 使用默认自增主键生成器                                                               |
+| *名称*                         | *数据类型*                             | *说明*                                      | *默认值*                                           |
+|------------------------------|------------------------------------|-------------------------------------------|-------------------------------------------------|
+| logicTable                   | String                             | 分片逻辑表名称                                   | -                                               |
+| actualDataNodes (?)          | String                             | 由数据源名 + 表名组成，以小数点分隔。<br />多个表以逗号分隔，支持行表达式 | 使用已知数据源与逻辑表名称生成数据节点，用于广播表或只分库不分表且所有库的表结构完全一致的情况 |
+| databaseShardingStrategy (?) | ShardingStrategyConfiguration      | 分库策略                                      | 使用默认分库策略                                        |
+| tableShardingStrategy (?)    | ShardingStrategyConfiguration      | 分表策略                                      | 使用默认分表策略                                        |
+| keyGenerateStrategy (?)      | KeyGeneratorConfiguration          | 自增列生成器                                    | 使用默认自增主键生成器                                     |
+| auditStrategy (?)            | ShardingAuditStrategyConfiguration | 分片审计策略                                    | 使用默认分片审计策略                                      |
 
 ### 自动分片表配置
 
@@ -48,12 +51,13 @@ weight = 1
 
 可配置属性：
 
-| *名称*                   | *数据类型*                     | *说明*                       | *默认值*            |
-| ----------------------- | ----------------------------- | ---------------------------- | ------------------ |
-| logicTable              | String                        | 分片逻辑表名称                 | -                  |
-| actualDataSources (?)   | String                        | 数据源名称，多个数据源以逗号分隔 | 使用全部配置的数据源  |
-| shardingStrategy (?)    | ShardingStrategyConfiguration | 分片策略                      | 使用默认分片策略      |
-| keyGenerateStrategy (?) | KeyGeneratorConfiguration     | 自增列生成器                   | 使用默认自增主键生成器 |
+| *名称*                    | *数据类型*                             | *说明*             | *默认值*       |
+|-------------------------|------------------------------------|------------------|-------------|
+| logicTable              | String                             | 分片逻辑表名称          | -           |
+| actualDataSources (?)   | String                             | 数据源名称，多个数据源以逗号分隔 | 使用全部配置的数据源  |
+| shardingStrategy (?)    | ShardingStrategyConfiguration      | 分片策略             | 使用默认分片策略    |
+| keyGenerateStrategy (?) | KeyGeneratorConfiguration          | 自增列生成器           | 使用默认自增主键生成器 |
+| auditStrategy (?)       | ShardingAuditStrategyConfiguration | 分片审计策略           | 使用默认分片审计策略  |
 
 ### 分片策略配置
 
@@ -63,10 +67,10 @@ weight = 1
 
 可配置属性：
 
-| *名称*                 | *数据类型* | *说明*      |
-| --------------------- | ---------- | ---------- |
-| shardingColumn        | String     | 分片列名称   |
-| shardingAlgorithmName | String     | 分片算法名称 |
+| *名称*                  | *数据类型* | *说明*   |
+|-----------------------|--------|--------|
+| shardingColumn        | String | 分片列名称  |
+| shardingAlgorithmName | String | 分片算法名称 |
 
 #### 复合分片策略配置
 
@@ -74,10 +78,10 @@ weight = 1
 
 可配置属性：
 
-| *名称*                 | *数据类型* | *说明*                    |
-| --------------------- | ---------- | ------------------------ |
-| shardingColumns       | String     | 分片列名称，多个列以逗号分隔 |
-| shardingAlgorithmName | String     | 分片算法名称               |
+| *名称*                  | *数据类型* | *说明*           |
+|-----------------------|--------|----------------|
+| shardingColumns       | String | 分片列名称，多个列以逗号分隔 |
+| shardingAlgorithmName | String | 分片算法名称         |
 
 #### Hint 分片策略配置
 
@@ -85,9 +89,9 @@ weight = 1
 
 可配置属性：
 
-| *名称*                 | *数据类型*  | *说明*      |
-| --------------------- | ---------- | ----------- |
-| shardingAlgorithmName | String     | 分片算法名称  |
+| *名称*                  | *数据类型* | *说明*   |
+|-----------------------|--------|--------|
+| shardingAlgorithmName | String | 分片算法名称 |
 
 #### 不分片策略配置
 
@@ -95,7 +99,7 @@ weight = 1
 
 可配置属性：无
 
-算法类型的详情，请参见[内置分片算法列表](/cn/user-manual/shardingsphere-jdbc/builtin-algorithm/sharding)。
+算法类型的详情，请参见[内置分片算法列表](/cn/user-manual/common-config/builtin-algorithm/sharding)。
 
 ### 分布式序列策略配置
 
@@ -103,12 +107,25 @@ weight = 1
 
 可配置属性：
 
-| *名称*           | *数据类型* | *说明*           |
-| ---------------- | -------- | ---------------- |
-| column           | String   | 分布式序列列名称   |
-| keyGeneratorName | String   | 分布式序列算法名称 |
+| *名称*             | *数据类型* | *说明*      |
+|------------------|--------|-----------|
+| column           | String | 分布式序列列名称  |
+| keyGeneratorName | String | 分布式序列算法名称 |
 
-算法类型的详情，请参见[内置分布式序列算法列表](/cn/user-manual/shardingsphere-jdbc/builtin-algorithm/keygen)。
+算法类型的详情，请参见[内置分布式序列算法列表](/cn/user-manual/common-config/builtin-algorithm/keygen)。
+
+### 分片审计策略配置
+
+类名称：org.apache.shardingsphere.sharding.api.config.strategy.audit.ShardingAuditStrategyConfiguration
+
+可配置属性：
+
+| *名称*             | *数据类型*               | *说明*         |
+|------------------|----------------------|--------------|
+| auditorNames     | Collection\<String\> | 分片审计算法名称     |
+| allowHintDisable | Boolean              | 是否禁用分片审计hint |
+
+算法类型的详情，请参见[内置分片审计列算法列表](/cn/user-manual/common-config/builtin-algorithm/audit)。
 
 ## 操作步骤
 
@@ -119,7 +136,7 @@ weight = 1
 ## 配置示例
 
 ```java
-public final class ShardingDatabasesAndTablesConfigurationPrecise implements ExampleConfiguration {
+public final class ShardingDatabasesAndTablesConfigurationPrecise {
     
     @Override
     public DataSource getDataSource() throws SQLException {
@@ -130,21 +147,23 @@ public final class ShardingDatabasesAndTablesConfigurationPrecise implements Exa
         ShardingRuleConfiguration result = new ShardingRuleConfiguration();
         result.getTables().add(getOrderTableRuleConfiguration());
         result.getTables().add(getOrderItemTableRuleConfiguration());
-        result.getBindingTableGroups().add("t_order, t_order_item");
+        result.getBindingTableGroups().add(new ShardingTableReferenceRuleConfiguration("foo", "t_order, t_order_item"));
         result.getBroadcastTables().add("t_address");
         result.setDefaultDatabaseShardingStrategy(new StandardShardingStrategyConfiguration("user_id", "inline"));
         result.setDefaultTableShardingStrategy(new StandardShardingStrategyConfiguration("order_id", "standard_test_tbl"));
         Properties props = new Properties();
         props.setProperty("algorithm-expression", "demo_ds_${user_id % 2}");
-        result.getShardingAlgorithms().put("inline", new ShardingSphereAlgorithmConfiguration("INLINE", props));
-        result.getShardingAlgorithms().put("standard_test_tbl", new ShardingSphereAlgorithmConfiguration("STANDARD_TEST_TBL", new Properties()));
-        result.getKeyGenerators().put("snowflake", new ShardingSphereAlgorithmConfiguration("SNOWFLAKE", new Properties()));
+        result.getShardingAlgorithms().put("inline", new AlgorithmConfiguration("INLINE", props));
+        result.getShardingAlgorithms().put("standard_test_tbl", new AlgorithmConfiguration("STANDARD_TEST_TBL", new Properties()));
+        result.getKeyGenerators().put("snowflake", new AlgorithmConfiguration("SNOWFLAKE", new Properties()));
+        result.getAuditors().put("sharding_key_required_auditor", new AlgorithmConfiguration("DML_SHARDING_CONDITIONS", new Properties()));
         return result;
     }
     
     private ShardingTableRuleConfiguration getOrderTableRuleConfiguration() {
         ShardingTableRuleConfiguration result = new ShardingTableRuleConfiguration("t_order", "demo_ds_${0..1}.t_order_${[0, 1]}");
         result.setKeyGenerateStrategy(new KeyGenerateStrategyConfiguration("order_id", "snowflake"));
+        result.setAuditStrategy(new ShardingAuditStrategyConfiguration(Collections.singleton("sharding_key_required_auditor"), true));
         return result;
     }
     

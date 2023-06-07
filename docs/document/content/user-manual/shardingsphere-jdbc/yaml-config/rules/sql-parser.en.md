@@ -10,8 +10,7 @@ The SQL parser YAML configuration is readable and easy to use. The YAML files al
 ## Parameters
 
 ```yaml
-rules:
-- !SQL_PARSER
+sqlParser:
   sqlCommentParseEnabled: # Whether to parse SQL comments 
   sqlStatementCache: # SQL statement local cache
     initialCapacity: # Initial capacity of local cache
@@ -28,18 +27,15 @@ rules:
    
 ## Sample
 ```yaml
-rules:
-  - !SQL_PARSER
-    sqlCommentParseEnabled: true
-    sqlStatementCache:
-      initialCapacity: 2000
-      maximumSize: 65535
-    parseTreeCache:
-      initialCapacity: 128
-      maximumSize: 1024
+sqlParser:
+  sqlCommentParseEnabled: true
+  sqlStatementCache:
+    initialCapacity: 2000
+    maximumSize: 65535
+  parseTreeCache:
+    initialCapacity: 128
+    maximumSize: 1024
 ```
 
 ## Related References
 - [JAVA API: SQL Parsing](/en/user-manual/shardingsphere-jdbc/java-api/rules/sql-parser/)
-- [Spring Boot Starter: SQL Parsing](/en/user-manual/shardingsphere-jdbc/spring-boot-starter/rules/sql-parser/)
-- [Spring namespace: SQL Parsing](/en/user-manual/shardingsphere-jdbc/spring-namespace/rules/sql-parser/)

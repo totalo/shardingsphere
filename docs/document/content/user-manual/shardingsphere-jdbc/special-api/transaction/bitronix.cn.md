@@ -54,28 +54,9 @@ Apache ShardingSphere 提供 XA 事务，集成了 Bitronix 的实现。
 Yaml:
 
 ```yaml
-- !TRANSACTION
+transaction:
   defaultType: XA
   providerType: Bitronix
-```
-
-SpringBoot:
-
-```yaml
-spring:
-  shardingsphere:
-    props:
-      xa-transaction-manager-type: Bitronix
-```
-
-Spring Namespace:
-
-```xml
-<shardingsphere:data-source id="xxx" data-source-names="xxx" rule-refs="xxx">
-    <props>
-        <prop key="xa-transaction-manager-type">Bitronix</prop>
-    </props>
-</shardingsphere:data-source>
 ```
 
 ### 配置 Bitronix （可省略）

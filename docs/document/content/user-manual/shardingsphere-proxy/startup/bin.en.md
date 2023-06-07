@@ -35,13 +35,13 @@ ShardingSphere-Proxy supports multiple logical data sources. Each YAML configura
 
 If the backend is connected to a PostgreSQL or openGauss database, no additional dependencies need to be introduced.
 
-If the backend is connected to a MySQL database, please download [mysql-connector-java-5.1.47.jar](https://repo1.maven.org/maven2/mysql/mysql-connector-java/5.1.47/mysql-connector-java-5.1.47.jar) or [mysql-connector-java-8.0.11.jar](https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.11/mysql-connector-java-8.0.11.jar), and put it into the `ext-lib` directory.
+If the backend is connected to a MySQL database, please download [mysql-connector-java-5.1.49.jar](https://repo1.maven.org/maven2/mysql/mysql-connector-java/5.1.49/mysql-connector-java-5.1.49.jar) or [mysql-connector-java-8.0.11.jar](https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.11/mysql-connector-java-8.0.11.jar), and put it into the `ext-lib` directory.
 
 5. Introduce dependencies required by the cluster mode (Optional)
 
 ShardingSphere-Proxy integrates the ZooKeeper Curator client by default. ZooKeeper is used in cluster mode without introducing other dependencies.
 
-If the cluster mode uses Etcd, the client drivers of Etcd [jetcd-core 0.5.0](https://repo1.maven.org/maven2/io/etcd/jetcd-core/0.5.0/jetcd-core-0.5.0.jar) need to be copied into the `ext-lib` directory.
+If the cluster mode uses Etcd, the client drivers of Etcd [jetcd-core 0.7.3](https://repo1.maven.org/maven2/io/etcd/jetcd-core/0.7.3/jetcd-core-0.7.3.jar) need to be copied into the `ext-lib` directory.
 
 6. Introduce dependencies required by distributed transactions (Optional)
 

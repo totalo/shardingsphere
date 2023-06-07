@@ -180,7 +180,7 @@ Output
 
 >For the current connection only. Set read-write splitting hint strategy (AUTO or WRITE).
 Supported source types include：AUTO and WRITE (case insensitive) .
-> - AUTO： automated readwrite splitting hint
+> - AUTO： automated readwrite-splitting hint
 > - WRITE：compulsory hint at the master library
 
 Input command
@@ -389,7 +389,7 @@ That's all folks. If you have any questions or suggestions, feel free to comment
 [https://github.com/apache/shardingsphere/issues]()
 
 ***Contributor Guide:***
-[https://shardingsphere.apache.org/community/cn/contribute/]()
+[https://shardingsphere.apache.org/community/cn/involved/]()
 
 ### References
 
@@ -410,27 +410,3 @@ Lan Chengxiang
 ![](https://shardingsphere.apache.org/blog/img/Blog_27_img__Lan_Chengxiang_Photo.png)
 
 >SphereEx Middleware Development Engineer & Apache ShardingSphere Contributor. He focuses on DisSQL design and development. 
-
-
-
-
-  
-
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

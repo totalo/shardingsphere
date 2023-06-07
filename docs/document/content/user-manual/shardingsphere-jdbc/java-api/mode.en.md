@@ -1,5 +1,5 @@
 +++
-title = "Mode Configuration"
+title = "Mode"
 weight = 1
 chapter = true
 +++
@@ -15,10 +15,9 @@ Class name: org.apache.shardingsphere.infra.config.mode.ModeConfiguration
 Attributes:
 
 | *Name*     | *DataType*                     | *Description*                                                                                                                                                    | *Default Value* |
-| ---------- | ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------- |
+|------------|--------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------|
 | type       | String                         | Type of mode configuration<br />Values could be: Standalone or Cluster                                                                                           | Standalone      |
 | repository | PersistRepositoryConfiguration | Persist repository configuration<br />Standalone type uses StandalonePersistRepositoryConfiguration<br />Cluster type uses ClusterPersistRepositoryConfiguration |                 |
-| overwrite  | boolean                        | Whether overwrite persistent configuration with local configuration                                                                                              | false           |
 
 ### Standalone Persist Configuration
 
@@ -27,7 +26,7 @@ Class name: org.apache.shardingsphere.mode.repository.standalone.StandalonePersi
 Attributes:
 
 | *Name* | *DataType* | *Description*                    |
-| ------ | ---------- | -------------------------------- |
+|--------|------------|----------------------------------|
 | type   | String     | Type of persist repository       |
 | props  | Properties | Properties of persist repository |
 
@@ -38,7 +37,7 @@ Class name: org.apache.shardingsphere.mode.repository.cluster.ClusterPersistRepo
 Attributes:
 
 | *Name*       | *Data Type* | *Description*                    |
-| ------------ | ----------- | -------------------------------- |
+|--------------|-------------|----------------------------------|
 | type         | String      | Type of persist repository       |
 | namespace    | String      | Namespace of registry center     |
 | server-lists | String      | Server lists of registry center  |
@@ -47,7 +46,8 @@ Attributes:
 ## Notes
 
 1. Cluster mode deployment is recommended for production environment.
-2. The 'ZooKeeper' registry center is recommended for cluster mode deployment.
+1. The `ZooKeeper` registry center is recommended for cluster mode deployment. 
+1. If there is configuration information in the `ZooKeeper`, please refer to the config information there.
 
 ## Procedure
 
@@ -56,7 +56,7 @@ Attributes:
 ```xml
 <dependency>
  <groupId>org.apache.shardingsphere</groupId>
- <artifactId>shardingsphere-jdbc-core-spring-boot-starter</artifactId>
+ <artifactId>shardingsphere-jdbc-core</artifactId>
  <version>${latest.release.version}</version>
 </dependency>
 ```
@@ -75,7 +75,7 @@ Properties props = ... // Build property configuration
 DataSource dataSource = ShardingSphereDataSourceFactory.createDataSource(databaseName, modeConfig, dataSourceMap, ruleConfigs, props);
 
 private ModeConfiguration createModeConfiguration() {
-    return new ModeConfiguration("Standalone", new StandalonePersistRepositoryConfiguration("H2", new Properties()), true);
+    return new ModeConfiguration("Standalone", new StandalonePersistRepositoryConfiguration("JDBC", new Properties()));
 }
 ```
 
@@ -89,11 +89,11 @@ Properties props = ... // Build property configuration
 DataSource dataSource = ShardingSphereDataSourceFactory.createDataSource(databaseName, modeConfig, dataSourceMap, ruleConfigs, props);
 
 private ModeConfiguration createModeConfiguration() {
-    return new ModeConfiguration("Cluster", new ClusterPersistRepositoryConfiguration("ZooKeeper", "governance-sharding-db", "localhost:2181", new Properties()), true);
+    return new ModeConfiguration("Cluster", new ClusterPersistRepositoryConfiguration("ZooKeeper", "governance-sharding-db", "localhost:2181", new Properties()));
 }
 ```
 
 ## Related References
 
 - [Installation and Usage of ZooKeeper Registry Center](https://zookeeper.apache.org/doc/r3.7.1/zookeeperStarted.html)
-- Please refer to [Builtin Persist Repository List](/en/user-manual/shardingsphere-jdbc/builtin-algorithm/metadata-repository/) for more details about type of repository.
+- Please refer to [Builtin Persist Repository List](/en/user-manual/common-config/builtin-algorithm/metadata-repository/) for more details about type of repository.

@@ -54,28 +54,9 @@ Introducing Maven dependency
 Yaml:
 
 ```yaml
-- !TRANSACTION
+transaction:
   defaultType: XA
   providerType: Bitronix
-```
-
-SpringBoot:
-
-```yaml
-spring:
-  shardingsphere:
-    props:
-      xa-transaction-manager-type: Bitronix
-```
-
-Spring Namespace:
-
-```xml
-<shardingsphere:data-source id="xxx" data-source-names="xxx" rule-refs="xxx">
-    <props>
-        <prop key="xa-transaction-manager-type">Bitronix</prop>
-    </props>
-</shardingsphere:data-source>
 ```
 
 ### Configure Bitronix (Deletable)

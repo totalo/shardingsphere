@@ -1,5 +1,5 @@
 +++
-pre = "<b>7.1. </b>"
+pre = "<b>6.1. </b>"
 title = "集成测试"
 weight = 1
 +++
@@ -20,12 +20,11 @@ weight = 1
 
 环境准备方式分为 Native 和 Docker，未来还将增加 Embed 类型的支持。
 
-  - Native 环境用于测试用例直接运行在开发者提供的测试环境中，适于调试场景；
-  - Docker 环境由 Maven 运行 Docker-Compose 插件直接搭建，适用于云编译环境和测试 ShardingSphere-Proxy 的场景，如：GitHub Action；
+  - Native 环境用于测试用例直接运行在开发者提供的测试环境中，适用于调试场景。
+  - Docker 环境由 Testcontainer 创建，适用于云编译环境和测试 ShardingSphere-Proxy 的场景，如：GitHub Action。
   - Embed 环境由测试框架自动搭建嵌入式 MySQL，适用于 ShardingSphere-JDBC 的本地环境测试。
 
-当前默认采用 Native 环境，使用 ShardingSphere-JDBC + H2 数据库运行测试用例。
-通过 Maven 的 `-Pit.env.docker` 参数可以指定 Docker 环境的运行方式。
+当前默认采用 Docker 环境，使用 Testcontainer 创建运行时环境并执行测试用例。
 未来将采用 Embed 环境的 ShardingSphere-JDBC + MySQL，替换 Native 执行测试用例的默认环境类型。 
 
 数据库类型目前支持 MySQL、PostgreSQL、SQLServer 和 Oracle，并且可以支持使用 ShardingSphere-JDBC 或是使用 ShardingSphere-Proxy 执行测试用例。
@@ -50,7 +49,7 @@ weight = 1
 
 ## 使用指南
 
-模块路径：`shardingsphere-test/shardingsphere-integration-test/shardingsphere-integration-test-suite`
+模块路径：`test/e2e/sql`
 
 ### 测试用例配置
 
@@ -98,7 +97,7 @@ SQL 用例在 `resources/cases/${SQL-TYPE}/${SQL-TYPE}-integration-test-cases.xm
 
 #### Native 环境配置
 
-目录：`src/test/resources/env/${SCENARIO-TYPE}`
+目录：`src/test/resources/env/scenario/${SCENARIO-TYPE}`
 
   - `scenario-env.properties`: 数据源配置；
   - `rules.yaml`: 规则配置；
@@ -109,12 +108,11 @@ SQL 用例在 `resources/cases/${SQL-TYPE}/${SQL-TYPE}-integration-test-cases.xm
 
 #### Docker 环境配置
 
-目录：`src/test/resources/docker/${SCENARIO-TYPE}`
+目录：`src/test/resources/env/${SCENARIO-TYPE}`
 
-  - `docker-compose.yml`: Docker-Compose 配置文件，用于 Docker 环境启动；
   - `proxy/conf/config-${SCENARIO-TYPE}.yaml`: 规则配置。
 
-**Docker 环境配置为 ShardingSphere-Proxy 提供了远程调试端口，可以在 `docker-compose.yml` 文件的 `shardingsphere-proxy` 中找到第 2 个暴露的端口用于远程调试。**
+**Docker 环境配置为 ShardingSphere-Proxy 提供了远程调试端口，可以在 `test/e2e/fixture/src/test/assembly/bin/start.sh` 文件的 `JAVA_OPTS` 中找到第 2 个暴露的端口用于远程调试。**
 
 ### 运行测试引擎
 
@@ -125,6 +123,8 @@ SQL 用例在 `resources/cases/${SQL-TYPE}/${SQL-TYPE}-integration-test-cases.xm
 所有的属性值都可以通过 Maven 命令行 `-D` 的方式动态注入。
 
 ```properties
+# 运行模式，多个值可用逗号分隔。可选值：Standalone, Cluster
+it.run.modes=Cluster
 
 # 场景类型，多个值可用逗号分隔。可选值：db, tbl, dbtbl_with_replica_query, replica_query
 it.scenarios=db,tbl,dbtbl_with_replica_query,replica_query
@@ -144,28 +144,55 @@ it.cluster.databases=H2,MySQL,Oracle,SQLServer,PostgreSQL
 #### 运行调试模式
 
   - 标准测试引擎
-    运行 `org.apache.shardingsphere.test.integration.engine.${SQL-TYPE}.General${SQL-TYPE}IT` 以启动不同 SQL 类型的测试引擎。
+    运行 `org.apache.shardingsphere.test.integration.engine.${SQL-TYPE}.General${SQL-TYPE}E2EIT` 以启动不同 SQL 类型的测试引擎。
 
   - 批量测试引擎
-    运行 `org.apache.shardingsphere.test.integration.engine.dml.BatchDMLIT`，以启动为 DML 语句提供的测试 `addBatch()` 的批量测试引擎。
+    运行 `org.apache.shardingsphere.test.integration.engine.dml.BatchDMLE2EIT`，以启动为 DML 语句提供的测试 `addBatch()` 的批量测试引擎。
 
   - 附加测试引擎
-    运行 `org.apache.shardingsphere.test.integration.engine.${SQL-TYPE}.Additional${SQL-TYPE}IT` 以启动使用更多 JDBC 方法调用的测试引擎。
+    运行 `org.apache.shardingsphere.test.integration.engine.${SQL-TYPE}.Additional${SQL-TYPE}E2EIT` 以启动使用更多 JDBC 方法调用的测试引擎。
     附加测试引擎需要通过设置 `it.run.additional.cases=true` 开启。
 
 #### 运行 Docker 模式
 
 ```bash
-./mvnw -B clean install -f shardingsphere-test/shardingsphere-integration-test/pom.xml -Pit.env.docker -Dit.cluster.adapters=proxy,jdbc -Dit.scenarios=${scenario_name_1,scenario_name_1,scenario_name_n} -Dit.cluster.databases=MySQL
+./mvnw -B clean install -f test/e2e/pom.xml -Pit.env.docker -Dit.cluster.adapters=proxy,jdbc -Dit.scenarios=${scenario_name_1,scenario_name_2,scenario_name_n} -Dit.cluster.databases=MySQL
 ```
+
 运行以上命令会构建出一个用于集成测试的 Docker 镜像 `apache/shardingsphere-proxy-test:latest`。
 如果仅修改了测试代码，可以复用已有的测试镜像，无须重新构建。使用以下命令可以跳过镜像构建，直接运行集成测试：
 
 ```bash
-./mvnw -B clean install -f shardingsphere-test/shardingsphere-integration-test/shardingsphere-integration-test-suite/pom.xml -Pit.env.docker -Dit.cluster.adapters=proxy,jdbc -Dit.scenarios=${scenario_name_1,scenario_name_1,scenario_name_n} -Dit.cluster.databases=MySQL
+./mvnw -B clean install -f test/e2e/sql/pom.xml -Pit.env.docker -Dit.cluster.adapters=proxy,jdbc -Dit.scenarios=${scenario_name_1,scenario_name_2,scenario_name_n} -Dit.cluster.databases=MySQL
 ```
+
+#### 远程 debug Docker 容器中的 Proxy 代码
+
+##### 远程调试通过镜像启动的 Proxy
+E2E 测试的 Proxy 镜像默认开启了 3308 端口用于远程调试容器中的实例。  
+使用 IDEA 等 IDE 工具可以通过如下方式连接并 debug 容器中的 Proxy 代码：
+
+IDEA -> Run -> Edit Configurations -> Add New Configuration -> Remote JVM Debug
+
+编辑对应的信息：
+  - Name：一个描述性的名字，例如 e2e-debug。
+  - Host：可以访问 docker 的 IP，例如 127.0.0.1。
+  - Port：调试端口 3308。
+  - use module classpath：项目根目录 shardingsphere。
+
+编辑好上面的信息后，在 IDEA 中 Run -> Run -> e2e-debug 即可启动 IDEA 的远程 debug。
+
+##### 远程调试通过 Testcontainer 启动的 Proxy
+> 注意：如果通过 Testcontainer 启动 Proxy 容器，由于 Testcontainer 启动前 3308 端口还没有暴露出来，无法通过 `远程调试通过镜像启动的 Proxy` 方式进行 debug。
+可以通过如下方式 debug Testcontainer 启动的 Proxy 容器：
+  - 在 Testcontainer 的相关启动类后打一个断点，例如 sql 测试中 E2EIT#setUp() -> `containerComposer.start();` 后面的一行打断点，此时相关容器一定已经启动。
+  - 通过快捷键 Alt + F8，进入断点调试模式，查看 containerComposer 下的 Proxy 对象 3308 映射的端口（Testcontainer 对外映射端口是随机的）。例如本次通过该表达式：`((ShardingSphereProxyClusterContainer)((java.util.LinkedList)((ITContainers)((ClusterContainerComposer)containerComposer).containers).dockerContainers).getLast()).getMappedPort(3308)` 获取到映射的对外随机端口为 51837。（或者通过命令 `docker ps` 查看）
+  - 参考 `远程调试通过镜像启动的 Proxy` 中的方式，Port 设置为上一步中获取到的端口。
+
+编辑好上面的信息后，在 IDEA 中 Run -> Run -> e2e-debug 即可启动 IDEA 的远程 debug。
+
 
 #### 注意事项
 
 1. 如需测试 Oracle，请在 pom.xml 中增加 Oracle 驱动依赖；
-1. 为了保证测试数据的完整性和易读性，整合测试中的分库分表采用了 10 库 10 表的方式，完全运行测试用例所需时间较长。
+2. 为了保证测试数据的完整性和易读性，整合测试中的分库分表采用了 10 库 10 表的方式，完全运行测试用例所需时间较长。

@@ -42,7 +42,7 @@ Please refer to [Configuration Manual](/en/user-manual/shardingsphere-proxy/yaml
 
 If the backend database is PostgreSQL or openGauss, no additional dependencies are required.
 
-If the backend database is MySQL, please download [mysql-connector-java-5.1.47.jar](https://repo1.maven.org/maven2/mysql/mysql-connector-java/5.1.47/mysql-connector-java-5.1.47.jar) or [mysql-connector-java-8.0.11.jar](https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.11/mysql-connector-java-8.0.11.jar) and put it into the `%SHARDINGSPHERE_PROXY_HOME%/ext-lib` directory.
+If the backend database is MySQL, please download [mysql-connector-java-5.1.49.jar](https://repo1.maven.org/maven2/mysql/mysql-connector-java/5.1.49/mysql-connector-java-5.1.49.jar) or [mysql-connector-java-8.0.11.jar](https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.11/mysql-connector-java-8.0.11.jar) and put it into the `%SHARDINGSPHERE_PROXY_HOME%/ext-lib` directory.
 
 4. Start server.
 
@@ -59,6 +59,14 @@ The default port is `3307`, while the default profile directory is `%SHARDINGSPH
 ```bash
 sh %SHARDINGSPHERE_PROXY_HOME%/bin/start.sh ${proxy_port} ${proxy_conf_directory}
 ```
+
+* Force start
+
+```bash
+sh %SHARDINGSPHERE_PROXY_HOME%/bin/start.sh -f
+```
+
+Use the `-f` parameter to force start the Proxy. This parameter will ignore the abnormal data source during startup and start the Proxy forcibly. After the Proxy is started, you can remove the abnormal data source by DistSQL.
 
 5. Use ShardingSphere-Proxy.
 
