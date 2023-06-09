@@ -19,7 +19,6 @@ package org.apache.shardingsphere.data.pipeline.core.job;
 
 import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shardingsphere.data.pipeline.api.context.PipelineJobItemContext;
 import org.apache.shardingsphere.data.pipeline.api.job.PipelineJob;
@@ -35,12 +34,15 @@ import org.apache.shardingsphere.elasticjob.infra.spi.ElasticJobServiceLoader;
 import org.apache.shardingsphere.elasticjob.lite.api.bootstrap.JobBootstrap;
 import org.apache.shardingsphere.infra.util.spi.type.typed.TypedSPILoader;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Abstract pipeline job.
@@ -49,22 +51,38 @@ import java.util.concurrent.TimeUnit;
 public abstract class AbstractPipelineJob implements PipelineJob {
     
     @Getter
-    private volatile String jobId;
+    private final String jobId;
     
     @Getter(AccessLevel.PROTECTED)
-    private volatile PipelineJobAPI jobAPI;
+    private final PipelineJobAPI jobAPI;
     
-    @Getter
-    private volatile boolean stopping;
+    private final AtomicBoolean stopping = new AtomicBoolean(false);
     
-    @Setter
-    private volatile JobBootstrap jobBootstrap;
+    private final AtomicReference<JobBootstrap> jobBootstrap = new AtomicReference<>();
     
     private final Map<Integer, PipelineTasksRunner> tasksRunnerMap = new ConcurrentHashMap<>();
     
-    protected void setJobId(final String jobId) {
+    protected AbstractPipelineJob(final String jobId) {
         this.jobId = jobId;
         jobAPI = TypedSPILoader.getService(PipelineJobAPI.class, PipelineJobIdUtils.parseJobType(jobId).getTypeName());
+    }
+    
+    /**
+     * Is stopping.
+     *
+     * @return whether job is stopping
+     */
+    public boolean isStopping() {
+        return stopping.get();
+    }
+    
+    /**
+     * Set job bootstrap.
+     *
+     * @param jobBootstrap job bootstrap
+     */
+    public void setJobBootstrap(final JobBootstrap jobBootstrap) {
+        this.jobBootstrap.set(jobBootstrap);
     }
     
     protected void prepare(final PipelineJobItemContext jobItemContext) {
@@ -76,16 +94,16 @@ public abstract class AbstractPipelineJob implements PipelineJob {
             processFailed(jobItemContext, ex);
             throw ex;
             // CHECKSTYLE:OFF
-        } catch (final Exception ex) {
+        } catch (final SQLException ex) {
             // CHECKSTYLE:ON
             processFailed(jobItemContext, ex);
             throw new PipelineInternalException(ex);
         }
     }
     
-    protected abstract void doPrepare(PipelineJobItemContext jobItemContext) throws Exception;
+    protected abstract void doPrepare(PipelineJobItemContext jobItemContext) throws SQLException;
     
-    private void processFailed(final PipelineJobItemContext jobItemContext, final Exception ex) {
+    protected void processFailed(final PipelineJobItemContext jobItemContext, final Exception ex) {
         String jobId = jobItemContext.getJobId();
         log.error("job prepare failed, {}-{}", jobId, jobItemContext.getShardingItem(), ex);
         jobAPI.persistJobItemErrorMessage(jobItemContext.getJobId(), jobItemContext.getShardingItem(), ex);
@@ -108,7 +126,7 @@ public abstract class AbstractPipelineJob implements PipelineJob {
             return false;
         }
         String jobId = tasksRunner.getJobItemContext().getJobId();
-        PipelineJobProgressPersistService.addJobProgressPersistContext(jobId, shardingItem);
+        PipelineJobProgressPersistService.add(jobId, shardingItem);
         PipelineDistributedBarrier.getInstance(PipelineJobIdUtils.parseContextKey(jobId)).persistEphemeralChildrenNode(PipelineMetaDataNode.getJobBarrierEnablePath(jobId), shardingItem);
         return true;
     }
@@ -124,17 +142,15 @@ public abstract class AbstractPipelineJob implements PipelineJob {
     }
     
     private void innerStop() {
-        stopping = true;
+        stopping.set(true);
         log.info("stop tasks runner, jobId={}", jobId);
         for (PipelineTasksRunner each : tasksRunnerMap.values()) {
             each.stop();
         }
-        if (null != jobId) {
-            Optional<ElasticJobListener> pipelineJobListener = ElasticJobServiceLoader.getCachedTypedServiceInstance(ElasticJobListener.class, PipelineElasticJobListener.class.getName());
-            pipelineJobListener.ifPresent(jobListener -> awaitJobStopped((PipelineElasticJobListener) jobListener, jobId, TimeUnit.SECONDS.toMillis(2)));
-        }
-        if (null != jobBootstrap) {
-            jobBootstrap.shutdown();
+        Optional<ElasticJobListener> pipelineJobListener = ElasticJobServiceLoader.getCachedTypedServiceInstance(ElasticJobListener.class, PipelineElasticJobListener.class.getName());
+        pipelineJobListener.ifPresent(jobListener -> awaitJobStopped((PipelineElasticJobListener) jobListener, jobId, TimeUnit.SECONDS.toMillis(2)));
+        if (null != jobBootstrap.get()) {
+            jobBootstrap.get().shutdown();
         }
     }
     
@@ -148,6 +164,7 @@ public abstract class AbstractPipelineJob implements PipelineJob {
             try {
                 Thread.sleep(sleepTime);
             } catch (final InterruptedException ignored) {
+                Thread.currentThread().interrupt();
                 break;
             }
             time += sleepTime;
@@ -156,9 +173,7 @@ public abstract class AbstractPipelineJob implements PipelineJob {
     
     private void innerClean() {
         tasksRunnerMap.clear();
-        if (null != jobId) {
-            PipelineJobProgressPersistService.removeJobProgressPersistContext(jobId);
-        }
+        PipelineJobProgressPersistService.remove(jobId);
     }
     
     protected abstract void doClean();

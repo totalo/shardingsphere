@@ -101,15 +101,6 @@ class CreateReadwriteSplittingRuleStatementUpdaterTest {
     }
     
     @Test
-    void assertCheckSQLStatementWithoutExistedAutoAwareResources() {
-        DataSourceContainedRule dataSourceContainedRule = mock(DataSourceContainedRule.class);
-        when(dataSourceContainedRule.getDataSourceMapper()).thenReturn(Collections.singletonMap("ms_group", Collections.singleton("ds_0")));
-        when(database.getRuleMetaData().findRules(DataSourceContainedRule.class)).thenReturn(Collections.singleton(dataSourceContainedRule));
-        ReadwriteSplittingRuleSegment ruleSegment = new ReadwriteSplittingRuleSegment("dynamic_rule", "ha_group", new AlgorithmSegment("TEST", new Properties()));
-        assertThrows(MissingRequiredStorageUnitsException.class, () -> updater.checkSQLStatement(database, createSQLStatement(false, ruleSegment), null));
-    }
-    
-    @Test
     void assertCheckSQLStatementWithoutToBeCreatedLoadBalancers() {
         when(database.getRuleMetaData().findRules(any())).thenReturn(Collections.emptyList());
         when(TypedSPILoader.checkService(any(), any(), any())).thenCallRealMethod();
@@ -151,7 +142,6 @@ class CreateReadwriteSplittingRuleStatementUpdaterTest {
         DataSourceContainedRule dataSourceContainedRule = mock(DataSourceContainedRule.class);
         when(dataSourceContainedRule.getDataSourceMapper()).thenReturn(Collections.singletonMap("ms_group", Collections.singleton("ds_0")));
         when(database.getRuleMetaData().findRules(DataSourceContainedRule.class)).thenReturn(Collections.singleton(dataSourceContainedRule));
-        
         when(TypedSPILoader.contains(ReadQueryLoadBalanceAlgorithm.class, "TEST")).thenReturn(true);
         ReadwriteSplittingRuleSegment staticSegment = new ReadwriteSplittingRuleSegment("static_rule", "write_ds_0", Arrays.asList("read_ds_0", "read_ds_1"),
                 new AlgorithmSegment("TEST", new Properties()));

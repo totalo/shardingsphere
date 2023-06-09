@@ -19,7 +19,7 @@ package org.apache.shardingsphere.readwritesplitting.route;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.shardingsphere.infra.binder.statement.SQLStatementContext;
-import org.apache.shardingsphere.infra.context.ConnectionContext;
+import org.apache.shardingsphere.infra.session.connection.ConnectionContext;
 import org.apache.shardingsphere.readwritesplitting.route.qualified.QualifiedReadwriteSplittingDataSourceRouter;
 import org.apache.shardingsphere.readwritesplitting.route.qualified.type.QualifiedReadwriteSplittingPrimaryDataSourceRouter;
 import org.apache.shardingsphere.readwritesplitting.route.standard.StandardReadwriteSplittingDataSourceRouter;
@@ -45,7 +45,7 @@ public final class ReadwriteSplittingDataSourceRouter {
      * @param sqlStatementContext SQL statement context
      * @return data source name
      */
-    public String route(final SQLStatementContext<?> sqlStatementContext) {
+    public String route(final SQLStatementContext sqlStatementContext) {
         for (QualifiedReadwriteSplittingDataSourceRouter each : getQualifiedRouters(connectionContext)) {
             if (each.isQualified(sqlStatementContext, rule)) {
                 return each.route(rule);

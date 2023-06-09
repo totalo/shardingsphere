@@ -18,11 +18,12 @@
 package org.apache.shardingsphere.encrypt.merge.dql;
 
 import lombok.RequiredArgsConstructor;
+import org.apache.shardingsphere.encrypt.api.encrypt.standard.StandardEncryptAlgorithm;
 import org.apache.shardingsphere.encrypt.api.context.EncryptContext;
-import org.apache.shardingsphere.encrypt.spi.EncryptAlgorithm;
 import org.apache.shardingsphere.infra.merge.result.MergedResult;
 
 import java.io.InputStream;
+import java.io.Reader;
 import java.sql.SQLException;
 import java.util.Calendar;
 import java.util.Optional;
@@ -49,7 +50,7 @@ public final class EncryptMergedResult implements MergedResult {
         if (!encryptContext.isPresent()) {
             return mergedResult.getValue(columnIndex, type);
         }
-        Optional<EncryptAlgorithm> encryptAlgorithm = metaData.findEncryptor(encryptContext.get().getTableName(), encryptContext.get().getColumnName());
+        Optional<StandardEncryptAlgorithm> encryptAlgorithm = metaData.findStandardEncryptor(encryptContext.get().getTableName(), encryptContext.get().getColumnName());
         if (!encryptAlgorithm.isPresent()) {
             return mergedResult.getValue(columnIndex, type);
         }
@@ -65,6 +66,11 @@ public final class EncryptMergedResult implements MergedResult {
     @Override
     public InputStream getInputStream(final int columnIndex, final String type) throws SQLException {
         return mergedResult.getInputStream(columnIndex, type);
+    }
+    
+    @Override
+    public Reader getCharacterStream(final int columnIndex) throws SQLException {
+        return mergedResult.getCharacterStream(columnIndex);
     }
     
     @Override

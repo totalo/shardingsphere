@@ -28,12 +28,12 @@ import org.apache.shardingsphere.infra.metadata.database.schema.model.ShardingSp
 import org.apache.shardingsphere.infra.util.exception.ShardingSpherePreconditions;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -50,36 +50,51 @@ public final class CDCSchemaTableUtils {
      * @return map key is schema, value is table names
      */
     public static Map<String, Set<String>> parseTableExpressionWithSchema(final ShardingSphereDatabase database, final Collection<SchemaTable> schemaTables) {
-        Map<String, Set<String>> result = new HashMap<>();
         Collection<String> systemSchemas = database.getProtocolType().getSystemSchemas();
-        Optional<SchemaTable> allSchemaTablesOptional = schemaTables.stream().filter(each -> "*".equals(each.getTable()) && ("*".equals(each.getSchema()) || each.getSchema().isEmpty())).findFirst();
-        if (allSchemaTablesOptional.isPresent()) {
-            for (Entry<String, ShardingSphereSchema> entry : database.getSchemas().entrySet()) {
-                if (systemSchemas.contains(entry.getKey())) {
-                    continue;
-                }
-                entry.getValue().getAllTableNames().forEach(tableName -> result.computeIfAbsent(entry.getKey(), ignored -> new HashSet<>()).add(tableName));
-            }
-            return result;
+        if (schemaTables.stream().anyMatch(each -> "*".equals(each.getTable()) && ("*".equals(each.getSchema()) || each.getSchema().isEmpty()))) {
+            return parseTableExpressionWithAllTables(database, systemSchemas);
         }
+        Map<String, Set<String>> result = new HashMap<>();
         for (SchemaTable each : schemaTables) {
             if ("*".equals(each.getSchema())) {
-                for (Entry<String, ShardingSphereSchema> entry : database.getSchemas().entrySet()) {
-                    if (systemSchemas.contains(entry.getKey())) {
-                        continue;
-                    }
-                    entry.getValue().getAllTableNames().stream().filter(tableName -> tableName.equals(each.getTable())).findFirst()
-                            .ifPresent(tableName -> result.computeIfAbsent(entry.getKey(), ignored -> new HashSet<>()).add(tableName));
-                }
+                result.putAll(parseTableExpressionWithAllSchema(database, systemSchemas, each));
             } else if ("*".equals(each.getTable())) {
-                String schemaName = each.getSchema().isEmpty() ? getDefaultSchema(database.getProtocolType()) : each.getSchema();
-                ShardingSphereSchema schema = database.getSchema(schemaName);
-                ShardingSpherePreconditions.checkNotNull(schema, () -> new SchemaNotFoundException(each.getSchema()));
-                schema.getAllTableNames().forEach(tableName -> result.computeIfAbsent(schemaName, ignored -> new HashSet<>()).add(tableName));
+                result.putAll(parseTableExpressionWithAllTable(database, each));
             } else {
                 result.computeIfAbsent(each.getSchema(), ignored -> new HashSet<>()).add(each.getTable());
             }
         }
+        return result;
+    }
+    
+    private static Map<String, Set<String>> parseTableExpressionWithAllTables(final ShardingSphereDatabase database, final Collection<String> systemSchemas) {
+        Map<String, Set<String>> result = new HashMap<>(database.getSchemas().size(), 1);
+        for (Entry<String, ShardingSphereSchema> entry : database.getSchemas().entrySet()) {
+            if (!systemSchemas.contains(entry.getKey())) {
+                entry.getValue().getAllTableNames().forEach(tableName -> result.computeIfAbsent(entry.getKey(), ignored -> new HashSet<>()).add(tableName));
+            }
+            
+        }
+        return result;
+    }
+    
+    private static Map<String, Set<String>> parseTableExpressionWithAllSchema(final ShardingSphereDatabase database, final Collection<String> systemSchemas, final SchemaTable table) {
+        Map<String, Set<String>> result = new HashMap<>();
+        for (Entry<String, ShardingSphereSchema> entry : database.getSchemas().entrySet()) {
+            if (!systemSchemas.contains(entry.getKey())) {
+                entry.getValue().getAllTableNames().stream().filter(tableName -> tableName.equals(table.getTable())).findFirst()
+                        .ifPresent(tableName -> result.computeIfAbsent(entry.getKey(), ignored -> new HashSet<>()).add(tableName));
+            }
+        }
+        return result;
+    }
+    
+    private static Map<String, Set<String>> parseTableExpressionWithAllTable(final ShardingSphereDatabase database, final SchemaTable each) {
+        Map<String, Set<String>> result = new HashMap<>();
+        String schemaName = each.getSchema().isEmpty() ? getDefaultSchema(database.getProtocolType()) : each.getSchema();
+        ShardingSphereSchema schema = database.getSchema(schemaName);
+        ShardingSpherePreconditions.checkNotNull(schema, () -> new SchemaNotFoundException(each.getSchema()));
+        schema.getAllTableNames().forEach(tableName -> result.computeIfAbsent(schemaName, ignored -> new HashSet<>()).add(tableName));
         return result;
     }
     
@@ -98,8 +113,8 @@ public final class CDCSchemaTableUtils {
      * @return parsed table names
      */
     public static Collection<String> parseTableExpressionWithoutSchema(final ShardingSphereDatabase database, final List<String> tableNames) {
-        Optional<String> allTablesOptional = tableNames.stream().filter("*"::equals).findFirst();
-        Set<String> allTableNames = new HashSet<>(database.getSchema(database.getName()).getAllTableNames());
-        return allTablesOptional.isPresent() ? allTableNames : new HashSet<>(tableNames);
+        ShardingSphereSchema schema = database.getSchema(database.getName());
+        Set<String> allTableNames = null == schema ? Collections.emptySet() : new HashSet<>(schema.getAllTableNames());
+        return tableNames.stream().anyMatch("*"::equals) ? allTableNames : new HashSet<>(tableNames);
     }
 }

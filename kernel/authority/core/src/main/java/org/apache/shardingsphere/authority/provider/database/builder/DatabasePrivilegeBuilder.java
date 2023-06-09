@@ -61,13 +61,13 @@ public final class DatabasePrivilegeBuilder {
      */
     private static void checkDatabases(final String mappingProp) {
         Preconditions.checkArgument(!"".equals(mappingProp), "user-database-mappings configuration `%s` can not be null", mappingProp);
-        Arrays.stream(mappingProp.split(",")).forEach(each -> Preconditions.checkArgument(0 < each.indexOf("@") && 0 < each.indexOf("="),
+        Arrays.stream(mappingProp.split(",")).forEach(each -> Preconditions.checkArgument(each.contains("@") && each.contains("="),
                 "user-database-mappings configuration `%s` is invalid, the configuration format should be like `username@hostname=database`", each));
     }
     
     private static Map<ShardingSphereUser, ShardingSpherePrivileges> buildPrivileges(final Collection<ShardingSphereUser> users, final String mappingProp) {
         Map<ShardingSphereUser, Collection<String>> userDatabaseMappings = convertDatabases(mappingProp);
-        Map<ShardingSphereUser, ShardingSpherePrivileges> result = new HashMap<>(users.size(), 1);
+        Map<ShardingSphereUser, ShardingSpherePrivileges> result = new HashMap<>(users.size(), 1F);
         users.forEach(each -> result.put(each, new DatabasePermittedPrivileges(new HashSet<>(getUserDatabases(each, userDatabaseMappings)))));
         return result;
     }
@@ -80,7 +80,7 @@ public final class DatabasePrivilegeBuilder {
      */
     private static Map<ShardingSphereUser, Collection<String>> convertDatabases(final String mappingProp) {
         String[] mappings = mappingProp.split(",");
-        Map<ShardingSphereUser, Collection<String>> result = new HashMap<>(mappings.length, 1);
+        Map<ShardingSphereUser, Collection<String>> result = new HashMap<>(mappings.length, 1F);
         Arrays.asList(mappings).forEach(each -> {
             String[] userDatabasePair = each.trim().split("=");
             String yamlUser = userDatabasePair[0];

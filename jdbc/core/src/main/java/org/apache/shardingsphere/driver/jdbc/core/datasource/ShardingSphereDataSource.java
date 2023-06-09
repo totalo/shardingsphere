@@ -39,7 +39,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Properties;
@@ -58,7 +58,7 @@ public final class ShardingSphereDataSource extends AbstractDataSourceAdapter im
     
     public ShardingSphereDataSource(final String databaseName, final ModeConfiguration modeConfig) throws SQLException {
         this.databaseName = databaseName;
-        contextManager = createContextManager(databaseName, modeConfig, new HashMap<>(), new LinkedList<>(), new Properties());
+        contextManager = createContextManager(databaseName, modeConfig, new LinkedHashMap<>(), new LinkedList<>(), new Properties());
         jdbcContext = new JDBCContext(contextManager.getDataSourceMap(databaseName));
         contextManagerInitializedCallback(databaseName, contextManager);
     }
@@ -74,7 +74,7 @@ public final class ShardingSphereDataSource extends AbstractDataSourceAdapter im
     private ContextManager createContextManager(final String databaseName, final ModeConfiguration modeConfig, final Map<String, DataSource> dataSourceMap,
                                                 final Collection<RuleConfiguration> ruleConfigs, final Properties props) throws SQLException {
         InstanceMetaData instanceMetaData = TypedSPILoader.getService(InstanceMetaDataBuilder.class, "JDBC").build(-1);
-        Collection<RuleConfiguration> globalRuleConfigs = ruleConfigs.stream().filter(each -> each instanceof GlobalRuleConfiguration).collect(Collectors.toList());
+        Collection<RuleConfiguration> globalRuleConfigs = ruleConfigs.stream().filter(GlobalRuleConfiguration.class::isInstance).collect(Collectors.toList());
         Collection<RuleConfiguration> databaseRuleConfigs = new LinkedList<>(ruleConfigs);
         databaseRuleConfigs.removeAll(globalRuleConfigs);
         ContextManagerBuilderParameter param = new ContextManagerBuilderParameter(modeConfig, Collections.singletonMap(databaseName,
@@ -87,7 +87,7 @@ public final class ShardingSphereDataSource extends AbstractDataSourceAdapter im
             try {
                 each.onInitialized(databaseName, contextManager);
                 // CHECKSTYLE:OFF
-            } catch (final Exception ignored) {
+            } catch (final RuntimeException ignored) {
                 // CHECKSTYLE:ON
             }
         }
@@ -141,7 +141,7 @@ public final class ShardingSphereDataSource extends AbstractDataSourceAdapter im
             try {
                 each.onDestroyed(databaseName, InstanceType.JDBC);
                 // CHECKSTYLE:OFF
-            } catch (final Exception ignored) {
+            } catch (final RuntimeException ignored) {
                 // CHECKSTYLE:ON
             }
         }

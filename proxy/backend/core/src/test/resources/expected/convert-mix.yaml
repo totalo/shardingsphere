@@ -51,16 +51,18 @@ PROPERTIES('minPoolSize'='1', 'connectionTimeoutMilliseconds'='30000', 'maxLifet
 
 CREATE READWRITE_SPLITTING RULE readwrite_ds_0 (
 WRITE_STORAGE_UNIT=ds_0,
-READ_STORAGE_UNITS(ds_1,ds_2)
+READ_STORAGE_UNITS(ds_1,ds_2),
+TYPE(NAME='random')
 ), readwrite_ds_1 (
 WRITE_STORAGE_UNIT=ds_3,
-READ_STORAGE_UNITS(ds_4,ds_5)
+READ_STORAGE_UNITS(ds_4,ds_5),
+TYPE(NAME='random')
 );
 
 CREATE ENCRYPT RULE t_encrypt (
 COLUMNS(
-(NAME=user_id, PLAIN=user_plain, CIPHER=user_cipher, ASSISTED_QUERY_COLUMN=user_assisted, LIKE_QUERY_COLUMN=user_like, ENCRYPT_ALGORITHM(TYPE(NAME='aes', PROPERTIES('aes-key-value'='123456abc'))), ASSISTED_QUERY_ALGORITHM(TYPE(NAME='md5')), LIKE_QUERY_ALGORITHM(TYPE(NAME='char_digest_like'))),
-(NAME=order_id, CIPHER=order_cipher, ENCRYPT_ALGORITHM(TYPE(NAME='md5')))
+(NAME=user_id, CIPHER=user_cipher, ASSISTED_QUERY_COLUMN=user_assisted, LIKE_QUERY_COLUMN=user_like, ENCRYPT_ALGORITHM(TYPE(NAME='aes', PROPERTIES('aes-key-value'='123456abc'))), ASSISTED_QUERY_ALGORITHM(TYPE(NAME='rc4', PROPERTIES('rc4-key-value'='123456abc'))), LIKE_QUERY_ALGORITHM(TYPE(NAME='char_digest_like'))),
+(NAME=order_id, CIPHER=order_cipher, ENCRYPT_ALGORITHM(TYPE(NAME='rc4', PROPERTIES('rc4-key-value'='123456abc'))))
 ));
 
 CREATE SHARDING TABLE RULE t_order (

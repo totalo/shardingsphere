@@ -17,7 +17,7 @@
 
 package org.apache.shardingsphere.infra.executor.sql.process;
 
-import org.apache.shardingsphere.infra.binder.QueryContext;
+import org.apache.shardingsphere.infra.session.query.QueryContext;
 import org.apache.shardingsphere.infra.binder.statement.dml.UpdateStatementContext;
 import org.apache.shardingsphere.infra.executor.kernel.model.ExecutionGroupContext;
 import org.apache.shardingsphere.infra.executor.kernel.model.ExecutionGroupReportContext;
@@ -65,7 +65,7 @@ class ProcessEngineTest {
     private ExecutionGroupContext<? extends SQLExecutionUnit> mockExecutionGroupContext() {
         ExecutionGroupContext<? extends SQLExecutionUnit> result = mock(ExecutionGroupContext.class);
         ExecutionGroupReportContext reportContext = mock(ExecutionGroupReportContext.class);
-        when(reportContext.getProcessId()).thenReturn(UUID.randomUUID().toString());
+        when(reportContext.getProcessId()).thenReturn(UUID.fromString("00000000-000-0000-0000-000000000001").toString());
         when(result.getReportContext()).thenReturn(reportContext);
         return result;
     }

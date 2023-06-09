@@ -29,7 +29,6 @@ import org.apache.shardingsphere.proxy.backend.exception.UnsupportedVariableExce
 import org.apache.shardingsphere.proxy.backend.session.ConnectionSession;
 import org.apache.shardingsphere.test.util.PropertiesBuilder;
 import org.apache.shardingsphere.test.util.PropertiesBuilder.Property;
-import org.apache.shardingsphere.transaction.api.TransactionType;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collection;
@@ -60,19 +59,8 @@ class ShowDistVariableExecutorTest {
     }
     
     @Test
-    void assertShowTransactionType() {
-        when(connectionSession.getTransactionStatus().getTransactionType()).thenReturn(TransactionType.LOCAL);
-        ShowDistVariableExecutor executor = new ShowDistVariableExecutor();
-        Collection<LocalDataQueryResultRow> actual = executor.getRows(metaData, connectionSession, new ShowDistVariableStatement("TRANSACTION_TYPE"));
-        assertThat(actual.size(), is(1));
-        LocalDataQueryResultRow row = actual.iterator().next();
-        assertThat(row.getCell(1), is("transaction_type"));
-        assertThat(row.getCell(2), is("LOCAL"));
-    }
-    
-    @Test
     void assertShowCachedConnections() {
-        when(connectionSession.getBackendConnection().getConnectionSize()).thenReturn(1);
+        when(connectionSession.getDatabaseConnectionManager().getConnectionSize()).thenReturn(1);
         ShowDistVariableExecutor executor = new ShowDistVariableExecutor();
         Collection<LocalDataQueryResultRow> actual = executor.getRows(metaData, connectionSession, new ShowDistVariableStatement("CACHED_CONNECTIONS"));
         assertThat(actual.size(), is(1));

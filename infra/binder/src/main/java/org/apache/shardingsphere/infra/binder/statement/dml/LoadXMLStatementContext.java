@@ -30,7 +30,7 @@ import java.util.Collection;
  * Load xml statement context.
  */
 @Getter
-public final class LoadXMLStatementContext extends CommonSQLStatementContext<MySQLLoadXMLStatement> implements TableAvailable {
+public final class LoadXMLStatementContext extends CommonSQLStatementContext implements TableAvailable {
     
     private final TablesContext tablesContext;
     
@@ -40,7 +40,12 @@ public final class LoadXMLStatementContext extends CommonSQLStatementContext<MyS
     }
     
     @Override
+    public MySQLLoadXMLStatement getSqlStatement() {
+        return (MySQLLoadXMLStatement) super.getSqlStatement();
+    }
+    
+    @Override
     public Collection<SimpleTableSegment> getAllTables() {
-        return tablesContext.getTables();
+        return tablesContext.getSimpleTableSegments();
     }
 }

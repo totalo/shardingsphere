@@ -63,11 +63,6 @@ public enum ConfigurationPropertyKey implements TypedPropertyKey {
     CHECK_TABLE_METADATA_ENABLED("check-table-metadata-enabled", String.valueOf(Boolean.FALSE), boolean.class, false),
     
     /**
-     * SQL federation type.
-     */
-    SQL_FEDERATION_TYPE("sql-federation-type", "NONE", String.class, false),
-    
-    /**
      * Frontend database protocol type for ShardingSphere-Proxy.
      */
     PROXY_FRONTEND_DATABASE_PROTOCOL_TYPE("proxy-frontend-database-protocol-type", "", String.class, false),
@@ -102,11 +97,6 @@ public enum ConfigurationPropertyKey implements TypedPropertyKey {
      * Proxy Netty backlog size.
      */
     PROXY_NETTY_BACKLOG("proxy-netty-backlog", "1024", int.class, false),
-    
-    /**
-     * Proxy instance type.
-     */
-    PROXY_INSTANCE_TYPE("proxy-instance-type", "Proxy", String.class, true),
     
     /**
      * CDC server port.

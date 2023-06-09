@@ -42,47 +42,59 @@ public final class EncryptTable {
     private Map<String, EncryptColumn> createEncryptColumns(final EncryptTableRuleConfiguration config) {
         Map<String, EncryptColumn> result = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
         for (EncryptColumnRuleConfiguration each : config.getColumns()) {
-            EncryptColumn encryptColumn = new EncryptColumn(each.getCipherColumn(), each.getAssistedQueryColumn(), each.getPlainColumn(),
-                    each.getLikeQueryColumn(), each.getEncryptorName(), each.getAssistedQueryEncryptorName(), each.getLikeQueryEncryptorName());
-            result.put(each.getLogicColumn(), encryptColumn);
+            result.put(each.getName(), createEncryptColumn(each));
+        }
+        return result;
+    }
+    
+    private EncryptColumn createEncryptColumn(final EncryptColumnRuleConfiguration config) {
+        EncryptColumnItem cipherColumnItem = new EncryptColumnItem(config.getCipher().getName(), config.getCipher().getEncryptorName());
+        EncryptColumn result = new EncryptColumn(config.getName(), cipherColumnItem);
+        if (config.getAssistedQuery().isPresent()) {
+            EncryptColumnItem assistedQueryColumn = new EncryptColumnItem(config.getAssistedQuery().get().getName(), config.getAssistedQuery().get().getEncryptorName());
+            result.setAssistedQuery(assistedQueryColumn);
+        }
+        if (config.getLikeQuery().isPresent()) {
+            EncryptColumnItem likeQueryColumn = new EncryptColumnItem(config.getLikeQuery().get().getName(), config.getLikeQuery().get().getEncryptorName());
+            result.setLikeQuery(likeQueryColumn);
         }
         return result;
     }
     
     /**
-     * Find encrypt algorithm name.
+     * Find encryptor name.
      *
-     * @param logicColumn column name
+     * @param logicColumnName logic column name
      * @return encrypt algorithm name
      */
-    public Optional<String> findEncryptorName(final String logicColumn) {
-        return columns.containsKey(logicColumn) ? Optional.of(columns.get(logicColumn).getEncryptorName()) : Optional.empty();
+    public Optional<String> findEncryptorName(final String logicColumnName) {
+        return columns.containsKey(logicColumnName) ? Optional.of(columns.get(logicColumnName).getCipher().getEncryptorName()) : Optional.empty();
     }
     
     /**
-     * Find assisted query encrypt algorithm name.
+     * Find assisted query encryptor name.
      *
-     * @param logicColumn column name
-     * @return assist encrypt algorithm name
+     * @param logicColumnName logic column name
+     * @return assist query encryptor name
      */
-    public Optional<String> findAssistedQueryEncryptorName(final String logicColumn) {
-        return columns.containsKey(logicColumn) ? Optional.ofNullable(columns.get(logicColumn).getAssistedQueryEncryptorName()) : Optional.empty();
+    public Optional<String> findAssistedQueryEncryptorName(final String logicColumnName) {
+        return columns.containsKey(logicColumnName) ? columns.get(logicColumnName).getAssistedQuery().map(EncryptColumnItem::getEncryptorName) : Optional.empty();
     }
     
     /**
      * Find like query encrypt algorithm name.
      *
-     * @param logicColumn column name
+     * @param logicColumnName logic column name
      * @return like encrypt algorithm name
      */
-    public Optional<String> findLikeQueryEncryptorName(final String logicColumn) {
-        return columns.containsKey(logicColumn) ? Optional.ofNullable(columns.get(logicColumn).getLikeQueryEncryptorName()) : Optional.empty();
+    public Optional<String> findLikeQueryEncryptorName(final String logicColumnName) {
+        return columns.containsKey(logicColumnName) ? columns.get(logicColumnName).getLikeQuery().map(EncryptColumnItem::getEncryptorName) : Optional.empty();
     }
     
     /**
      * Get logic columns.
      *
-     * @return logic column
+     * @return logic column names
      */
     public Collection<String> getLogicColumns() {
         return columns.keySet();
@@ -91,53 +103,37 @@ public final class EncryptTable {
     /**
      * Get logic column by cipher column.
      * 
-     * @param cipherColumn cipher column
+     * @param cipherColumnName cipher column name
      * @return logic column
      * @throws EncryptLogicColumnNotFoundException encrypt logic column not found exception
      */
-    public String getLogicColumnByCipherColumn(final String cipherColumn) {
+    public String getLogicColumnByCipherColumn(final String cipherColumnName) {
         for (Entry<String, EncryptColumn> entry : columns.entrySet()) {
-            if (entry.getValue().getCipherColumn().equals(cipherColumn)) {
+            if (entry.getValue().getCipher().getName().equalsIgnoreCase(cipherColumnName)) {
                 return entry.getKey();
             }
         }
-        throw new EncryptLogicColumnNotFoundException(cipherColumn);
-    }
-    
-    /**
-     * Get logic column by plain column.
-     *
-     * @param plainColumn plain column
-     * @return logic column
-     * @throws EncryptLogicColumnNotFoundException encrypt logic column not found exception
-     */
-    public String getLogicColumnByPlainColumn(final String plainColumn) {
-        for (Entry<String, EncryptColumn> entry : columns.entrySet()) {
-            if (entry.getValue().getPlainColumn().isPresent() && entry.getValue().getPlainColumn().get().equals(plainColumn)) {
-                return entry.getKey();
-            }
-        }
-        throw new EncryptLogicColumnNotFoundException(plainColumn);
+        throw new EncryptLogicColumnNotFoundException(cipherColumnName);
     }
     
     /**
      * Is cipher column or not.
      *
-     * @param columnName column name
+     * @param logicColumnName logic column name
      * @return cipher column or not
      */
-    public boolean isCipherColumn(final String columnName) {
-        return columns.values().stream().anyMatch(each -> each.getCipherColumn().equalsIgnoreCase(columnName));
+    public boolean isCipherColumn(final String logicColumnName) {
+        return columns.values().stream().anyMatch(each -> each.getCipher().getName().equalsIgnoreCase(logicColumnName));
     }
     
     /**
      * Get cipher column.
      *
-     * @param logicColumn logic column name
+     * @param logicColumnName logic column name
      * @return cipher column
      */
-    public String getCipherColumn(final String logicColumn) {
-        return columns.get(logicColumn).getCipherColumn();
+    public String getCipherColumn(final String logicColumnName) {
+        return columns.get(logicColumnName).getCipher().getName();
     }
     
     /**
@@ -148,8 +144,8 @@ public final class EncryptTable {
     public Collection<String> getAssistedQueryColumns() {
         Collection<String> result = new LinkedList<>();
         for (EncryptColumn each : columns.values()) {
-            if (each.getAssistedQueryColumn().isPresent()) {
-                result.add(each.getAssistedQueryColumn().get());
+            if (each.getAssistedQuery().isPresent()) {
+                result.add(each.getAssistedQuery().get().getName());
             }
         }
         return result;
@@ -163,8 +159,8 @@ public final class EncryptTable {
     public Collection<String> getLikeQueryColumns() {
         Collection<String> result = new LinkedList<>();
         for (EncryptColumn each : columns.values()) {
-            if (each.getLikeQueryColumn().isPresent()) {
-                result.add(each.getLikeQueryColumn().get());
+            if (each.getLikeQuery().isPresent()) {
+                result.add(each.getLikeQuery().get().getName());
             }
         }
         return result;
@@ -173,46 +169,21 @@ public final class EncryptTable {
     /**
      * Find assisted query column.
      *
-     * @param logicColumn column name
+     * @param logicColumnName logic column name
      * @return assisted query column
      */
-    public Optional<String> findAssistedQueryColumn(final String logicColumn) {
-        return columns.containsKey(logicColumn) ? columns.get(logicColumn).getAssistedQueryColumn() : Optional.empty();
+    public Optional<String> findAssistedQueryColumn(final String logicColumnName) {
+        return columns.containsKey(logicColumnName) ? columns.get(logicColumnName).getAssistedQuery().map(EncryptColumnItem::getName) : Optional.empty();
     }
     
     /**
      * Find like query column.
      *
-     * @param logicColumn column name
+     * @param logicColumnName column name
      * @return like query column
      */
-    public Optional<String> findLikeQueryColumn(final String logicColumn) {
-        return columns.containsKey(logicColumn) ? columns.get(logicColumn).getLikeQueryColumn() : Optional.empty();
-    }
-    
-    /**
-     * Get plain columns.
-     *
-     * @return plain columns
-     */
-    public Collection<String> getPlainColumns() {
-        Collection<String> result = new LinkedList<>();
-        for (EncryptColumn each : columns.values()) {
-            if (each.getPlainColumn().isPresent()) {
-                result.add(each.getPlainColumn().get());
-            }
-        }
-        return result;
-    }
-    
-    /**
-     * Find plain column.
-     *
-     * @param logicColumn logic column name
-     * @return plain column
-     */
-    public Optional<String> findPlainColumn(final String logicColumn) {
-        return columns.containsKey(logicColumn) ? columns.get(logicColumn).getPlainColumn() : Optional.empty();
+    public Optional<String> findLikeQueryColumn(final String logicColumnName) {
+        return columns.containsKey(logicColumnName) ? columns.get(logicColumnName).getLikeQuery().map(EncryptColumnItem::getName) : Optional.empty();
     }
     
     /**
@@ -223,7 +194,7 @@ public final class EncryptTable {
     public Map<String, String> getLogicAndCipherColumns() {
         Map<String, String> result = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
         for (Entry<String, EncryptColumn> entry : columns.entrySet()) {
-            result.put(entry.getKey(), entry.getValue().getCipherColumn());
+            result.put(entry.getKey(), entry.getValue().getCipher().getName());
         }
         return result;
     }
@@ -231,11 +202,11 @@ public final class EncryptTable {
     /**
      * Find encrypt column.
      * 
-     * @param logicColumn logic column
+     * @param logicColumnName logic column name
      * @return encrypt column
      */
-    public Optional<EncryptColumn> findEncryptColumn(final String logicColumn) {
-        return Optional.ofNullable(columns.get(logicColumn));
+    public Optional<EncryptColumn> findEncryptColumn(final String logicColumnName) {
+        return Optional.ofNullable(columns.get(logicColumnName));
     }
     
 }

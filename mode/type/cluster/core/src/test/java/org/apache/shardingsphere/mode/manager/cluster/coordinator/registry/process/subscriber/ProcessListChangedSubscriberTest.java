@@ -42,6 +42,7 @@ import org.apache.shardingsphere.mode.manager.cluster.coordinator.registry.statu
 import org.apache.shardingsphere.mode.metadata.MetaDataContexts;
 import org.apache.shardingsphere.mode.repository.cluster.ClusterPersistRepository;
 import org.apache.shardingsphere.mode.repository.cluster.ClusterPersistRepositoryConfiguration;
+import org.awaitility.Awaitility;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -56,6 +57,7 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -123,10 +125,7 @@ class ProcessListChangedSubscriberTest {
         String taskId = "foo_id";
         long startMillis = System.currentTimeMillis();
         Executors.newFixedThreadPool(1).submit(() -> {
-            try {
-                Thread.sleep(50L);
-            } catch (final InterruptedException ignored) {
-            }
+            Awaitility.await().pollDelay(50L, TimeUnit.MILLISECONDS).until(() -> true);
             subscriber.completeToReportLocalProcesses(new ReportLocalProcessesCompletedEvent(taskId));
         });
         waitUntilReleaseReady(taskId);
@@ -149,10 +148,7 @@ class ProcessListChangedSubscriberTest {
         String processId = "foo_id";
         long startMillis = System.currentTimeMillis();
         Executors.newFixedThreadPool(1).submit(() -> {
-            try {
-                Thread.sleep(50L);
-            } catch (final InterruptedException ignored) {
-            }
+            Awaitility.await().pollDelay(50L, TimeUnit.MILLISECONDS).until(() -> true);
             subscriber.completeToKillLocalProcess(new KillLocalProcessCompletedEvent(processId));
         });
         waitUntilReleaseReady(processId);
@@ -161,7 +157,7 @@ class ProcessListChangedSubscriberTest {
         assertThat(currentMillis, lessThanOrEqualTo(startMillis + 5000L));
     }
     
-    private static void waitUntilReleaseReady(final String lockId) {
+    private void waitUntilReleaseReady(final String lockId) {
         ProcessOperationLockRegistry.getInstance().waitUntilReleaseReady(lockId, new ProcessOperationLockReleaseStrategy() {
             
             private final AtomicBoolean firstTime = new AtomicBoolean(true);

@@ -19,11 +19,12 @@ package org.apache.shardingsphere.encrypt.merge.dql;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.shardingsphere.encrypt.api.context.EncryptContext;
+import org.apache.shardingsphere.encrypt.api.encrypt.standard.StandardEncryptAlgorithm;
 import org.apache.shardingsphere.encrypt.context.EncryptContextBuilder;
 import org.apache.shardingsphere.encrypt.rule.EncryptRule;
-import org.apache.shardingsphere.encrypt.spi.EncryptAlgorithm;
 import org.apache.shardingsphere.infra.binder.segment.select.projection.Projection;
 import org.apache.shardingsphere.infra.binder.segment.select.projection.impl.ColumnProjection;
+import org.apache.shardingsphere.infra.binder.segment.select.projection.impl.SubqueryProjection;
 import org.apache.shardingsphere.infra.binder.segment.table.TablesContext;
 import org.apache.shardingsphere.infra.binder.statement.dml.SelectStatementContext;
 import org.apache.shardingsphere.infra.database.type.DatabaseTypeEngine;
@@ -48,14 +49,14 @@ public final class EncryptAlgorithmMetaData {
     private final SelectStatementContext selectStatementContext;
     
     /**
-     * Find encryptor.
+     * Find standard encryptor.
      * 
      * @param tableName table name
      * @param columnName column name
-     * @return encryptor
+     * @return standard encryptor
      */
-    public Optional<EncryptAlgorithm> findEncryptor(final String tableName, final String columnName) {
-        return encryptRule.findEncryptor(tableName, columnName);
+    public Optional<StandardEncryptAlgorithm> findStandardEncryptor(final String tableName, final String columnName) {
+        return encryptRule.findStandardEncryptor(tableName, columnName);
     }
     
     /**
@@ -83,7 +84,13 @@ public final class EncryptAlgorithmMetaData {
             return Optional.empty();
         }
         Projection projection = expandProjections.get(columnIndex - 1);
-        return projection instanceof ColumnProjection ? Optional.of((ColumnProjection) projection) : Optional.empty();
+        if (projection instanceof ColumnProjection) {
+            return Optional.of((ColumnProjection) projection);
+        }
+        if (projection instanceof SubqueryProjection && ((SubqueryProjection) projection).getProjection() instanceof ColumnProjection) {
+            return Optional.of((ColumnProjection) ((SubqueryProjection) projection).getProjection());
+        }
+        return Optional.empty();
     }
     
     private Optional<String> findTableName(final ColumnProjection columnProjection, final Map<String, String> columnTableNames) {
@@ -92,7 +99,7 @@ public final class EncryptAlgorithmMetaData {
             return Optional.of(tableName);
         }
         for (String each : selectStatementContext.getTablesContext().getTableNames()) {
-            if (encryptRule.findEncryptor(each, columnProjection.getName()).isPresent()) {
+            if (encryptRule.findStandardEncryptor(each, columnProjection.getName()).isPresent()) {
                 return Optional.of(each);
             }
         }

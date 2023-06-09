@@ -86,6 +86,7 @@ import org.apache.shardingsphere.infra.datasource.props.DataSourceProperties;
 import org.apache.shardingsphere.infra.datasource.props.DataSourcePropertiesCreator;
 import org.apache.shardingsphere.infra.metadata.database.ShardingSphereDatabase;
 import org.apache.shardingsphere.infra.util.exception.ShardingSpherePreconditions;
+import org.apache.shardingsphere.infra.util.json.JsonUtils;
 import org.apache.shardingsphere.infra.util.spi.type.typed.TypedSPILoader;
 import org.apache.shardingsphere.infra.yaml.config.pojo.YamlRootConfiguration;
 import org.apache.shardingsphere.infra.yaml.config.pojo.rule.YamlRuleConfiguration;
@@ -93,6 +94,7 @@ import org.apache.shardingsphere.infra.yaml.config.swapper.resource.YamlDataSour
 import org.apache.shardingsphere.infra.yaml.config.swapper.rule.YamlRuleConfigurationSwapperEngine;
 import org.apache.shardingsphere.migration.distsql.statement.MigrateTableStatement;
 import org.apache.shardingsphere.migration.distsql.statement.pojo.SourceTargetEntry;
+import org.apache.shardingsphere.mode.manager.ContextManager;
 
 import javax.sql.DataSource;
 import java.nio.charset.StandardCharsets;
@@ -117,8 +119,6 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public final class MigrationJobAPI extends AbstractInventoryIncrementalJobAPIImpl {
-    
-    private static final Gson GSON = new Gson();
     
     private final PipelineDataSourcePersistService dataSourcePersistService = new PipelineDataSourcePersistService();
     
@@ -220,7 +220,7 @@ public final class MigrationJobAPI extends AbstractInventoryIncrementalJobAPIImp
     
     @Override
     protected String marshalJobIdLeftPart(final PipelineJobId pipelineJobId) {
-        String text = GSON.toJson(pipelineJobId);
+        String text = JsonUtils.toJsonString(pipelineJobId);
         return DigestUtils.md5Hex(text.getBytes(StandardCharsets.UTF_8));
     }
     
@@ -376,8 +376,8 @@ public final class MigrationJobAPI extends AbstractInventoryIncrementalJobAPIImp
     @Override
     public void rollback(final String jobId) throws SQLException {
         final long startTimeMillis = System.currentTimeMillis();
-        dropCheckJobs(jobId);
         stop(jobId);
+        dropCheckJobs(jobId);
         cleanTempTableOnRollback(jobId);
         dropJob(jobId);
         log.info("Rollback job {} cost {} ms", jobId, System.currentTimeMillis() - startTimeMillis);
@@ -423,6 +423,8 @@ public final class MigrationJobAPI extends AbstractInventoryIncrementalJobAPIImp
         final long startTimeMillis = System.currentTimeMillis();
         dropCheckJobs(jobId);
         stop(jobId);
+        MigrationJobConfiguration jobConfig = getJobConfiguration(jobId);
+        refreshTableMetadata(jobId, jobConfig.getTargetDatabaseName());
         dropJob(jobId);
         log.info("Commit cost {} ms", System.currentTimeMillis() - startTimeMillis);
     }
@@ -435,7 +437,7 @@ public final class MigrationJobAPI extends AbstractInventoryIncrementalJobAPIImp
      */
     public void addMigrationSourceResources(final PipelineContextKey contextKey, final Map<String, DataSourceProperties> dataSourcePropsMap) {
         Map<String, DataSourceProperties> existDataSources = dataSourcePersistService.load(contextKey, getJobType());
-        Collection<String> duplicateDataSourceNames = new HashSet<>(dataSourcePropsMap.size(), 1);
+        Collection<String> duplicateDataSourceNames = new HashSet<>(dataSourcePropsMap.size(), 1F);
         for (Entry<String, DataSourceProperties> entry : dataSourcePropsMap.entrySet()) {
             if (existDataSources.containsKey(entry.getKey())) {
                 duplicateDataSourceNames.add(entry.getKey());
@@ -503,6 +505,19 @@ public final class MigrationJobAPI extends AbstractInventoryIncrementalJobAPIImp
             return standardProps.get(key).toString();
         }
         return "";
+    }
+    
+    /**
+     * Refresh table metadata.
+     *
+     * @param jobId job id
+     * @param databaseName database name
+     */
+    public void refreshTableMetadata(final String jobId, final String databaseName) {
+        // TODO use origin database name now, wait reloadDatabaseMetaData fix case-sensitive probelm
+        ContextManager contextManager = PipelineContextManager.getContext(PipelineJobIdUtils.parseContextKey(jobId)).getContextManager();
+        ShardingSphereDatabase database = contextManager.getMetaDataContexts().getMetaData().getDatabase(databaseName);
+        contextManager.reloadDatabaseMetaData(database.getName());
     }
     
     @Override

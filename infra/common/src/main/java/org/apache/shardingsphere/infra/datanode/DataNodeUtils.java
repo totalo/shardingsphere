@@ -41,13 +41,9 @@ public final class DataNodeUtils {
      * @return data node groups, key is data source name, values are data nodes belong to this data source
      */
     public static Map<String, List<DataNode>> getDataNodeGroups(final Collection<DataNode> dataNodes) {
-        Map<String, List<DataNode>> result = new LinkedHashMap<>(dataNodes.size(), 1);
+        Map<String, List<DataNode>> result = new LinkedHashMap<>(dataNodes.size(), 1F);
         for (DataNode each : dataNodes) {
-            String dataSourceName = each.getDataSourceName();
-            if (!result.containsKey(dataSourceName)) {
-                result.put(dataSourceName, new LinkedList<>());
-            }
-            result.get(dataSourceName).add(each);
+            result.computeIfAbsent(each.getDataSourceName(), unused -> new LinkedList<>()).add(each);
         }
         return result;
     }

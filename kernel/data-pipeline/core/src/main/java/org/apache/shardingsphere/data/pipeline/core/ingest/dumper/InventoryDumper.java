@@ -33,6 +33,7 @@ import org.apache.shardingsphere.data.pipeline.api.ingest.position.PrimaryKeyPos
 import org.apache.shardingsphere.data.pipeline.api.ingest.record.Column;
 import org.apache.shardingsphere.data.pipeline.api.ingest.record.DataRecord;
 import org.apache.shardingsphere.data.pipeline.api.ingest.record.FinishedRecord;
+import org.apache.shardingsphere.data.pipeline.api.ingest.record.Record;
 import org.apache.shardingsphere.data.pipeline.api.job.JobOperationType;
 import org.apache.shardingsphere.data.pipeline.api.metadata.LogicTableName;
 import org.apache.shardingsphere.data.pipeline.api.metadata.loader.PipelineTableMetaDataLoader;
@@ -59,8 +60,10 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Inventory dumper.
@@ -81,7 +84,7 @@ public final class InventoryDumper extends AbstractLifecycleExecutor implements 
     
     private final PipelineTableMetaDataLoader metaDataLoader;
     
-    private volatile Statement dumpStatement;
+    private final AtomicReference<Statement> dumpStatement = new AtomicReference<>();
     
     public InventoryDumper(final InventoryDumperConfiguration dumperConfig, final PipelineChannel channel, final DataSource dataSource, final PipelineTableMetaDataLoader metaDataLoader) {
         this.dumperConfig = dumperConfig;
@@ -95,7 +98,7 @@ public final class InventoryDumper extends AbstractLifecycleExecutor implements 
     
     @Override
     protected void runBlocking() {
-        IngestPosition<?> position = dumperConfig.getPosition();
+        IngestPosition position = dumperConfig.getPosition();
         if (position instanceof FinishedPosition) {
             log.info("Ignored because of already finished.");
             return;
@@ -106,8 +109,6 @@ public final class InventoryDumper extends AbstractLifecycleExecutor implements 
         } catch (final SQLException ex) {
             log.error("Inventory dump, ex caught, msg={}.", ex.getMessage());
             throw new IngestException("Inventory dump failed on " + dumperConfig.getActualTableName(), ex);
-        } finally {
-            channel.pushRecord(new FinishedRecord(new FinishedPosition()));
         }
     }
     
@@ -118,7 +119,7 @@ public final class InventoryDumper extends AbstractLifecycleExecutor implements 
             connection.setTransactionIsolation(dumperConfig.getTransactionIsolation());
         }
         try (PreparedStatement preparedStatement = JDBCStreamQueryUtils.generateStreamQueryPreparedStatement(databaseType, connection, buildInventoryDumpSQL())) {
-            dumpStatement = preparedStatement;
+            dumpStatement.set(preparedStatement);
             if (!(databaseType instanceof MySQLDatabaseType)) {
                 preparedStatement.setFetchSize(batchSize);
             }
@@ -127,8 +128,13 @@ public final class InventoryDumper extends AbstractLifecycleExecutor implements 
                 int rowCount = 0;
                 JobRateLimitAlgorithm rateLimitAlgorithm = dumperConfig.getRateLimitAlgorithm();
                 ResultSetMetaData resultSetMetaData = resultSet.getMetaData();
+                List<Record> dataRecords = new LinkedList<>();
                 while (resultSet.next()) {
-                    channel.pushRecord(loadDataRecord(resultSet, resultSetMetaData, tableMetaData));
+                    if (dataRecords.size() >= batchSize) {
+                        channel.pushRecords(dataRecords);
+                        dataRecords = new LinkedList<>();
+                    }
+                    dataRecords.add(loadDataRecord(resultSet, resultSetMetaData, tableMetaData));
                     ++rowCount;
                     if (!isRunning()) {
                         log.info("Broke because of inventory dump is not running.");
@@ -138,7 +144,9 @@ public final class InventoryDumper extends AbstractLifecycleExecutor implements 
                         rateLimitAlgorithm.intercept(JobOperationType.SELECT, 1);
                     }
                 }
-                dumpStatement = null;
+                dataRecords.add(new FinishedRecord(new FinishedPosition()));
+                channel.pushRecords(dataRecords);
+                dumpStatement.set(null);
                 log.info("Inventory dump done, rowCount={}", rowCount);
             }
         }
@@ -190,9 +198,7 @@ public final class InventoryDumper extends AbstractLifecycleExecutor implements 
     
     private DataRecord loadDataRecord(final ResultSet resultSet, final ResultSetMetaData resultSetMetaData, final PipelineTableMetaData tableMetaData) throws SQLException {
         int columnCount = resultSetMetaData.getColumnCount();
-        DataRecord result = new DataRecord(newPosition(resultSet), columnCount);
-        result.setType(IngestDataChangeType.INSERT);
-        result.setTableName(dumperConfig.getLogicTableName());
+        DataRecord result = new DataRecord(IngestDataChangeType.INSERT, dumperConfig.getLogicTableName(), newPosition(resultSet), columnCount);
         List<String> insertColumnNames = Optional.ofNullable(dumperConfig.getInsertColumnNames()).orElse(Collections.emptyList());
         ShardingSpherePreconditions.checkState(insertColumnNames.isEmpty() || insertColumnNames.size() == resultSetMetaData.getColumnCount(),
                 () -> new PipelineInvalidParameterException("Insert colum names count not equals ResultSet column count"));
@@ -205,14 +211,14 @@ public final class InventoryDumper extends AbstractLifecycleExecutor implements 
         return result;
     }
     
-    private IngestPosition<?> newPosition(final ResultSet resultSet) throws SQLException {
+    private IngestPosition newPosition(final ResultSet resultSet) throws SQLException {
         return dumperConfig.hasUniqueKey()
                 ? PrimaryKeyPositionFactory.newInstance(resultSet.getObject(dumperConfig.getUniqueKeyColumns().get(0).getName()), ((PrimaryKeyPosition<?>) dumperConfig.getPosition()).getEndValue())
                 : new PlaceholderPosition();
     }
     
     @Override
-    protected void doStop() throws SQLException {
-        cancelStatement(dumpStatement);
+    protected void doStop() {
+        PipelineJdbcUtils.cancelStatement(dumpStatement.get());
     }
 }

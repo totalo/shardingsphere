@@ -24,12 +24,14 @@ import org.apache.shardingsphere.data.pipeline.api.check.consistency.DataConsist
 import org.apache.shardingsphere.data.pipeline.api.check.consistency.DataConsistencyCalculatedResult;
 
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Streaming data consistency calculate algorithm.
  */
-@RequiredArgsConstructor
 @Getter
 @Slf4j
 public abstract class AbstractStreamingDataConsistencyCalculateAlgorithm extends AbstractDataConsistencyCalculateAlgorithm {
@@ -64,29 +66,32 @@ public abstract class AbstractStreamingDataConsistencyCalculateAlgorithm extends
     @RequiredArgsConstructor
     private final class ResultIterator implements Iterator<DataConsistencyCalculatedResult> {
         
-        private final DataConsistencyCalculateParameter param;
+        private final AtomicBoolean currentChunkCalculated = new AtomicBoolean();
         
-        private volatile Optional<DataConsistencyCalculatedResult> nextResult;
+        private final AtomicReference<Optional<DataConsistencyCalculatedResult>> nextResult = new AtomicReference<>();
+        
+        private final DataConsistencyCalculateParameter param;
         
         @Override
         public boolean hasNext() {
             calculateIfNecessary();
-            return nextResult.isPresent();
+            return nextResult.get().isPresent();
         }
         
         @Override
         public DataConsistencyCalculatedResult next() {
             calculateIfNecessary();
-            Optional<DataConsistencyCalculatedResult> nextResult = this.nextResult;
-            this.nextResult = null;
-            return nextResult.orElse(null);
+            Optional<DataConsistencyCalculatedResult> result = nextResult.get();
+            nextResult.set(null);
+            currentChunkCalculated.set(false);
+            return result.orElseThrow(NoSuchElementException::new);
         }
         
         private void calculateIfNecessary() {
-            if (null != nextResult) {
-                return;
+            if (!currentChunkCalculated.get()) {
+                nextResult.set(calculateChunk(param));
+                currentChunkCalculated.set(true);
             }
-            nextResult = calculateChunk(param);
         }
     }
 }

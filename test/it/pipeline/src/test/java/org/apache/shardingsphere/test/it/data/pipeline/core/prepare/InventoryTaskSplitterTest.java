@@ -75,7 +75,7 @@ class InventoryTaskSplitterTest {
     private void initJobItemContext() {
         MigrationJobConfiguration jobConfig = JobConfigurationBuilder.createJobConfiguration();
         jobItemContext = PipelineContextUtils.mockMigrationJobItemContext(jobConfig);
-        dataSourceManager = (PipelineDataSourceManager) jobItemContext.getImporterConnector().getConnector();
+        dataSourceManager = jobItemContext.getDataSourceManager();
     }
     
     @AfterEach
@@ -106,7 +106,12 @@ class InventoryTaskSplitterTest {
     @Test
     void assertSplitInventoryDataWithCharPrimary() throws SQLException {
         initCharPrimaryEnvironment(dumperConfig);
-        inventoryTaskSplitter.splitInventoryData(jobItemContext);
+        List<InventoryTask> actual = inventoryTaskSplitter.splitInventoryData(jobItemContext);
+        assertThat(actual.size(), is(1));
+        assertThat(actual.get(0).getTaskId(), is("ds_0.t_order#0"));
+        IntegerPrimaryKeyPosition keyPosition = (IntegerPrimaryKeyPosition) actual.get(0).getTaskProgress().getPosition();
+        assertThat(keyPosition.getBeginValue(), is(1L));
+        assertThat(keyPosition.getEndValue(), is(999L));
     }
     
     @Test

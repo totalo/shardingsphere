@@ -28,7 +28,7 @@ import org.apache.shardingsphere.data.pipeline.core.util.PipelineDistributedBarr
 import org.apache.shardingsphere.data.pipeline.spi.job.JobType;
 import org.apache.shardingsphere.elasticjob.api.JobConfiguration;
 import org.apache.shardingsphere.elasticjob.lite.api.bootstrap.impl.OneOffJobBootstrap;
-import org.apache.shardingsphere.mode.repository.cluster.listener.DataChangedEvent.Type;
+import org.apache.shardingsphere.mode.event.DataChangedEvent.Type;
 
 import java.util.Collection;
 
@@ -79,15 +79,15 @@ public abstract class AbstractChangedJobConfigurationProcessor implements Change
     protected abstract void onDeleted(JobConfiguration jobConfig);
     
     protected void executeJob(final JobConfiguration jobConfig) {
-        AbstractPipelineJob job = buildPipelineJob();
         String jobId = jobConfig.getJobName();
+        AbstractPipelineJob job = buildPipelineJob(jobId);
         PipelineJobCenter.addJob(jobId, job);
         OneOffJobBootstrap oneOffJobBootstrap = new OneOffJobBootstrap(PipelineAPIFactory.getRegistryCenter(PipelineJobIdUtils.parseContextKey(jobId)), job, jobConfig);
         job.setJobBootstrap(oneOffJobBootstrap);
         oneOffJobBootstrap.execute();
     }
     
-    protected abstract AbstractPipelineJob buildPipelineJob();
+    protected abstract AbstractPipelineJob buildPipelineJob(String jobId);
     
     protected abstract JobType getJobType();
     

@@ -17,9 +17,6 @@
 
 package org.apache.shardingsphere.encrypt.merge.dql;
 
-import org.apache.shardingsphere.encrypt.api.context.EncryptContext;
-import org.apache.shardingsphere.encrypt.context.EncryptContextBuilder;
-import org.apache.shardingsphere.infra.database.DefaultDatabase;
 import org.apache.shardingsphere.infra.merge.result.MergedResult;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,6 +24,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.InputStream;
+import java.io.Reader;
 import java.sql.SQLException;
 import java.util.Calendar;
 import java.util.Date;
@@ -60,14 +58,6 @@ class EncryptMergedResultTest {
     }
     
     @Test
-    void assertGetValueWithQueryWithPlainColumn() throws SQLException {
-        when(mergedResult.getValue(1, String.class)).thenReturn("VALUE");
-        EncryptContext encryptContext = EncryptContextBuilder.build(DefaultDatabase.LOGIC_NAME, DefaultDatabase.LOGIC_NAME, "t_encrypt", "order_id");
-        when(metaData.findEncryptContext(1)).thenReturn(Optional.of(encryptContext));
-        assertThat(new EncryptMergedResult(metaData, mergedResult).getValue(1, String.class), is("VALUE"));
-    }
-    
-    @Test
     void assertGetCalendarValue() throws SQLException {
         Calendar calendar = Calendar.getInstance();
         when(mergedResult.getCalendarValue(1, Date.class, calendar)).thenReturn(new Date(0L));
@@ -79,6 +69,13 @@ class EncryptMergedResultTest {
         InputStream inputStream = mock(InputStream.class);
         when(mergedResult.getInputStream(1, "asc")).thenReturn(inputStream);
         assertThat(new EncryptMergedResult(metaData, mergedResult).getInputStream(1, "asc"), is(inputStream));
+    }
+    
+    @Test
+    void assertGetCharacterStream() throws SQLException {
+        Reader reader = mock(Reader.class);
+        when(mergedResult.getCharacterStream(1)).thenReturn(reader);
+        assertThat(new EncryptMergedResult(metaData, mergedResult).getCharacterStream(1), is(reader));
     }
     
     @Test

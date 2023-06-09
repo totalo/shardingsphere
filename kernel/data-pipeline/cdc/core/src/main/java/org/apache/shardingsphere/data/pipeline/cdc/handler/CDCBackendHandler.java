@@ -19,44 +19,49 @@ package org.apache.shardingsphere.data.pipeline.cdc.handler;
 
 import com.google.common.base.Strings;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelId;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.shardingsphere.data.pipeline.api.ingest.record.DataRecord;
 import org.apache.shardingsphere.data.pipeline.cdc.api.impl.CDCJobAPI;
 import org.apache.shardingsphere.data.pipeline.cdc.api.pojo.StreamDataParameter;
 import org.apache.shardingsphere.data.pipeline.cdc.config.job.CDCJobConfiguration;
 import org.apache.shardingsphere.data.pipeline.cdc.constant.CDCSinkType;
 import org.apache.shardingsphere.data.pipeline.cdc.context.CDCConnectionContext;
-import org.apache.shardingsphere.data.pipeline.cdc.core.ack.CDCAckHolder;
-import org.apache.shardingsphere.data.pipeline.cdc.core.connector.SocketSinkImporterConnector;
+import org.apache.shardingsphere.data.pipeline.cdc.core.ack.CDCAckId;
+import org.apache.shardingsphere.data.pipeline.cdc.core.importer.CDCImporter;
+import org.apache.shardingsphere.data.pipeline.cdc.core.importer.CDCImporterManager;
+import org.apache.shardingsphere.data.pipeline.cdc.core.importer.sink.CDCSocketSink;
+import org.apache.shardingsphere.data.pipeline.cdc.core.job.CDCJob;
 import org.apache.shardingsphere.data.pipeline.cdc.exception.CDCExceptionWrapper;
 import org.apache.shardingsphere.data.pipeline.cdc.exception.CDCServerException;
 import org.apache.shardingsphere.data.pipeline.cdc.exception.NotFindStreamDataSourceTableException;
 import org.apache.shardingsphere.data.pipeline.cdc.generator.CDCResponseGenerator;
-import org.apache.shardingsphere.data.pipeline.cdc.generator.DataRecordComparatorGenerator;
 import org.apache.shardingsphere.data.pipeline.cdc.protocol.request.AckStreamingRequestBody;
 import org.apache.shardingsphere.data.pipeline.cdc.protocol.request.StreamDataRequestBody;
 import org.apache.shardingsphere.data.pipeline.cdc.protocol.request.StreamDataRequestBody.SchemaTable;
 import org.apache.shardingsphere.data.pipeline.cdc.protocol.response.CDCResponse;
 import org.apache.shardingsphere.data.pipeline.cdc.protocol.response.StreamDataResult;
 import org.apache.shardingsphere.data.pipeline.cdc.util.CDCSchemaTableUtils;
-import org.apache.shardingsphere.data.pipeline.cdc.util.CDCTableRuleUtils;
 import org.apache.shardingsphere.data.pipeline.core.context.PipelineContextManager;
 import org.apache.shardingsphere.data.pipeline.core.exception.job.PipelineJobNotFoundException;
+import org.apache.shardingsphere.data.pipeline.core.exception.metadata.NoAnyRuleExistsException;
+import org.apache.shardingsphere.data.pipeline.core.exception.param.PipelineInvalidParameterException;
 import org.apache.shardingsphere.data.pipeline.core.job.PipelineJobCenter;
 import org.apache.shardingsphere.infra.database.type.dialect.OpenGaussDatabaseType;
 import org.apache.shardingsphere.infra.datanode.DataNode;
 import org.apache.shardingsphere.infra.metadata.database.ShardingSphereDatabase;
 import org.apache.shardingsphere.infra.util.exception.ShardingSpherePreconditions;
 import org.apache.shardingsphere.sharding.rule.ShardingRule;
+import org.apache.shardingsphere.single.rule.SingleRule;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -70,9 +75,9 @@ public final class CDCBackendHandler {
     private final CDCJobAPI jobAPI = new CDCJobAPI();
     
     /**
-     * Get database name by job id.
+     * Get database name by job ID.
      *
-     * @param jobId job id
+     * @param jobId job ID
      * @return database
      */
     public String getDatabaseNameByJobId(final String jobId) {
@@ -82,7 +87,7 @@ public final class CDCBackendHandler {
     /**
      * Stream data.
      *
-     * @param requestId request id
+     * @param requestId request ID
      * @param requestBody stream data request body
      * @param connectionContext connection context
      * @param channel channel
@@ -105,12 +110,8 @@ public final class CDCBackendHandler {
             tableNames = schemaTableNames;
         }
         ShardingSpherePreconditions.checkState(!tableNames.isEmpty(), () -> new CDCExceptionWrapper(requestId, new NotFindStreamDataSourceTableException()));
-        ShardingRule shardingRule = database.getRuleMetaData().getSingleRule(ShardingRule.class);
-        Map<String, List<DataNode>> actualDataNodesMap = new HashMap<>();
-        // TODO need support case-insensitive later
-        for (String each : tableNames) {
-            actualDataNodesMap.put(each, CDCTableRuleUtils.getActualDataNodes(shardingRule, each));
-        }
+        Map<String, List<DataNode>> actualDataNodesMap = buildDataNodesMap(database, tableNames);
+        ShardingSpherePreconditions.checkState(!actualDataNodesMap.isEmpty(), () -> new PipelineInvalidParameterException(String.format("Not find table %s", tableNames)));
         boolean decodeWithTx = database.getProtocolType() instanceof OpenGaussDatabaseType;
         StreamDataParameter parameter = new StreamDataParameter(requestBody.getDatabase(), new LinkedList<>(schemaTableNames), requestBody.getFull(), actualDataNodesMap, decodeWithTx);
         String jobId = jobAPI.createJob(parameter, CDCSinkType.SOCKET, new Properties());
@@ -119,10 +120,26 @@ public final class CDCBackendHandler {
         return CDCResponseGenerator.succeedBuilder(requestId).setStreamDataResult(StreamDataResult.newBuilder().setStreamingId(jobId).build()).build();
     }
     
+    private Map<String, List<DataNode>> buildDataNodesMap(final ShardingSphereDatabase database, final Collection<String> tableNames) {
+        Optional<ShardingRule> shardingRule = database.getRuleMetaData().findSingleRule(ShardingRule.class);
+        Optional<SingleRule> singleRule = database.getRuleMetaData().findSingleRule(SingleRule.class);
+        ShardingSpherePreconditions.checkState(shardingRule.isPresent() || singleRule.isPresent(), () -> new NoAnyRuleExistsException(database.getName()));
+        Map<String, List<DataNode>> result = new HashMap<>();
+        // TODO support virtual data source name
+        for (String each : tableNames) {
+            if (singleRule.isPresent() && singleRule.get().getAllDataNodes().containsKey(each)) {
+                result.put(each, new ArrayList<>(singleRule.get().getAllDataNodes().get(each)));
+                continue;
+            }
+            shardingRule.flatMap(value -> value.findTableRule(each)).ifPresent(rule -> result.put(each, rule.getActualDataNodes()));
+        }
+        return result;
+    }
+    
     /**
      * Start streaming.
      *
-     * @param jobId job id
+     * @param jobId job ID
      * @param channel channel
      * @param connectionContext connection context
      */
@@ -133,32 +150,37 @@ public final class CDCBackendHandler {
             PipelineJobCenter.stop(jobId);
         }
         ShardingSphereDatabase database = PipelineContextManager.getProxyContext().getContextManager().getMetaDataContexts().getMetaData().getDatabase(cdcJobConfig.getDatabaseName());
-        Comparator<DataRecord> dataRecordComparator = cdcJobConfig.isDecodeWithTX()
-                ? DataRecordComparatorGenerator.generatorIncrementalComparator(database.getProtocolType())
-                : null;
-        jobAPI.startJob(jobId, new SocketSinkImporterConnector(channel, database, cdcJobConfig.getJobShardingCount(), cdcJobConfig.getSchemaTableNames(), dataRecordComparator));
+        jobAPI.startJob(jobId, new CDCSocketSink(channel, database, cdcJobConfig.getSchemaTableNames()));
         connectionContext.setJobId(jobId);
     }
     
     /**
      * Stop streaming.
      *
-     * @param jobId job id
+     * @param jobId job ID
+     * @param channelId channel ID
      */
-    public void stopStreaming(final String jobId) {
+    public void stopStreaming(final String jobId, final ChannelId channelId) {
         if (Strings.isNullOrEmpty(jobId)) {
             log.warn("job id is null or empty, ignored");
             return;
         }
-        PipelineJobCenter.stop(jobId);
-        jobAPI.updateJobConfigurationDisabled(jobId, true);
+        CDCJob job = (CDCJob) PipelineJobCenter.getJob(jobId);
+        if (null == job) {
+            return;
+        }
+        if (job.getSink().identifierMatched(channelId)) {
+            log.info("close CDC job, channel id: {}", channelId);
+            PipelineJobCenter.stop(jobId);
+            jobAPI.updateJobConfigurationDisabled(jobId, true);
+        }
     }
     
     /**
      * Rollback streaming.
      *
-     * @param jobId job id.
-     * @throws SQLException sql exception
+     * @param jobId job ID
+     * @throws SQLException SQL exception
      */
     public void rollbackStreaming(final String jobId) throws SQLException {
         jobAPI.rollback(jobId);
@@ -167,10 +189,9 @@ public final class CDCBackendHandler {
     /**
      * Commit streaming.
      *
-     * @param jobId job id.
-     * @throws SQLException sql exception
+     * @param jobId job ID
      */
-    public void commitStreaming(final String jobId) throws SQLException {
+    public void commitStreaming(final String jobId) {
         jobAPI.commit(jobId);
     }
     
@@ -180,6 +201,12 @@ public final class CDCBackendHandler {
      * @param requestBody request body
      */
     public void processAck(final AckStreamingRequestBody requestBody) {
-        CDCAckHolder.getInstance().ack(requestBody.getAckId());
+        CDCAckId ackId = CDCAckId.unmarshal(requestBody.getAckId());
+        CDCImporter importer = CDCImporterManager.getImporter(ackId.getImporterId());
+        if (null == importer) {
+            log.warn("Could not find importer, ack id: {}", ackId.marshal());
+            return;
+        }
+        importer.ack(ackId.marshal());
     }
 }

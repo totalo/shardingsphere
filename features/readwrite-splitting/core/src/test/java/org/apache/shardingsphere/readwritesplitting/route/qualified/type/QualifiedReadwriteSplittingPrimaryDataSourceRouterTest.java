@@ -19,7 +19,6 @@ package org.apache.shardingsphere.readwritesplitting.route.qualified.type;
 
 import org.apache.shardingsphere.infra.binder.statement.CommonSQLStatementContext;
 import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.predicate.LockSegment;
-import org.apache.shardingsphere.sql.parser.sql.common.statement.SQLStatement;
 import org.apache.shardingsphere.sql.parser.sql.common.statement.dml.SelectStatement;
 import org.apache.shardingsphere.sql.parser.sql.dialect.statement.mysql.dml.MySQLSelectStatement;
 import org.apache.shardingsphere.sql.parser.sql.dialect.statement.mysql.dml.MySQLUpdateStatement;
@@ -36,10 +35,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public final class QualifiedReadwriteSplittingPrimaryDataSourceRouterTest {
+class QualifiedReadwriteSplittingPrimaryDataSourceRouterTest {
     
     @Mock
-    private CommonSQLStatementContext<SQLStatement> sqlStatementContext;
+    private CommonSQLStatementContext sqlStatementContext;
     
     @Test
     void assertWriteRouteStatement() {

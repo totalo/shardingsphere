@@ -27,6 +27,7 @@ import org.apache.shardingsphere.infra.merge.result.MergedResult;
 import org.apache.shardingsphere.infra.util.exception.ShardingSpherePreconditions;
 
 import java.io.InputStream;
+import java.io.Reader;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
 import java.util.Calendar;
@@ -48,7 +49,7 @@ public abstract class EncryptShowCreateTableMergedResult implements MergedResult
     
     private final EncryptRule encryptRule;
     
-    protected EncryptShowCreateTableMergedResult(final SQLStatementContext<?> sqlStatementContext, final EncryptRule encryptRule) {
+    protected EncryptShowCreateTableMergedResult(final SQLStatementContext sqlStatementContext, final EncryptRule encryptRule) {
         ShardingSpherePreconditions.checkState(sqlStatementContext instanceof TableAvailable && 1 == ((TableAvailable) sqlStatementContext).getAllTables().size(),
                 () -> new UnsupportedEncryptSQLException("SHOW CREATE TABLE FOR MULTI TABLE"));
         tableName = ((TableAvailable) sqlStatementContext).getAllTables().iterator().next().getTableName().getIdentifier().getValue();
@@ -86,9 +87,6 @@ public abstract class EncryptShowCreateTableMergedResult implements MergedResult
                 return Optional.of(columnDefinition.replace(each, encryptTable.getLogicColumnByCipherColumn(each)));
             }
         }
-        if (encryptTable.getPlainColumns().stream().anyMatch(columnDefinition::contains)) {
-            return Optional.empty();
-        }
         if (encryptTable.getAssistedQueryColumns().stream().anyMatch(columnDefinition::contains)) {
             return Optional.empty();
         }
@@ -105,6 +103,11 @@ public abstract class EncryptShowCreateTableMergedResult implements MergedResult
     
     @Override
     public final InputStream getInputStream(final int columnIndex, final String type) throws SQLException {
+        throw new SQLFeatureNotSupportedException("");
+    }
+    
+    @Override
+    public Reader getCharacterStream(final int columnIndex) throws SQLException {
         throw new SQLFeatureNotSupportedException("");
     }
     

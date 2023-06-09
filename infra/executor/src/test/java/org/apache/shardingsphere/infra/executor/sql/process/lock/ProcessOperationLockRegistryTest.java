@@ -17,9 +17,11 @@
 
 package org.apache.shardingsphere.infra.executor.sql.process.lock;
 
+import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -33,10 +35,7 @@ class ProcessOperationLockRegistryTest {
         String lockId = "foo_id";
         long startMillis = System.currentTimeMillis();
         Executors.newFixedThreadPool(1).submit(() -> {
-            try {
-                Thread.sleep(50L);
-            } catch (final InterruptedException ignored) {
-            }
+            Awaitility.await().pollDelay(50L, TimeUnit.MILLISECONDS).until(() -> true);
             ProcessOperationLockRegistry.getInstance().notify(lockId);
         });
         waitUntilReleaseReady(lockId);
@@ -45,7 +44,7 @@ class ProcessOperationLockRegistryTest {
         assertThat(currentMillis, lessThanOrEqualTo(startMillis + 5000L));
     }
     
-    private static void waitUntilReleaseReady(final String lockId) {
+    private void waitUntilReleaseReady(final String lockId) {
         ProcessOperationLockRegistry.getInstance().waitUntilReleaseReady(lockId, new ProcessOperationLockReleaseStrategy() {
             
             private final AtomicBoolean firstTime = new AtomicBoolean(true);

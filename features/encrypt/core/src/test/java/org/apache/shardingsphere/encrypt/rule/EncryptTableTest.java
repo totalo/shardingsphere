@@ -17,6 +17,7 @@
 
 package org.apache.shardingsphere.encrypt.rule;
 
+import org.apache.shardingsphere.encrypt.api.config.rule.EncryptColumnItemRuleConfiguration;
 import org.apache.shardingsphere.encrypt.api.config.rule.EncryptColumnRuleConfiguration;
 import org.apache.shardingsphere.encrypt.api.config.rule.EncryptTableRuleConfiguration;
 import org.apache.shardingsphere.encrypt.exception.metadata.EncryptLogicColumnNotFoundException;
@@ -39,8 +40,10 @@ class EncryptTableTest {
     
     @BeforeEach
     void setUp() {
-        encryptTable = new EncryptTable(new EncryptTableRuleConfiguration("t_encrypt",
-                Collections.singleton(new EncryptColumnRuleConfiguration("logicColumn", "cipherColumn", "assistedQueryColumn", "likeQueryColumn", "plainColumn", "myEncryptor"))));
+        EncryptColumnRuleConfiguration columnRuleConfig = new EncryptColumnRuleConfiguration("logicColumn", new EncryptColumnItemRuleConfiguration("cipherColumn", "myEncryptor"));
+        columnRuleConfig.setAssistedQuery(new EncryptColumnItemRuleConfiguration("assistedQueryColumn"));
+        columnRuleConfig.setLikeQuery(new EncryptColumnItemRuleConfiguration("likeQueryColumn"));
+        encryptTable = new EncryptTable(new EncryptTableRuleConfiguration("t_encrypt", Collections.singleton(columnRuleConfig)));
     }
     
     @Test
@@ -66,16 +69,6 @@ class EncryptTableTest {
     @Test
     void assertGetLogicColumnByCipherColumnWhenNotFind() {
         assertThrows(EncryptLogicColumnNotFoundException.class, () -> encryptTable.getLogicColumnByCipherColumn("invalidColumn"));
-    }
-    
-    @Test
-    void assertGetLogicColumnByPlainColumn() {
-        assertNotNull(encryptTable.getLogicColumnByPlainColumn("plainColumn"));
-    }
-    
-    @Test
-    void assertGetLogicColumnByPlainColumnWhenNotFind() {
-        assertThrows(EncryptLogicColumnNotFoundException.class, () -> encryptTable.getLogicColumnByPlainColumn("invalidColumn"));
     }
     
     @Test
@@ -120,23 +113,6 @@ class EncryptTableTest {
     @Test
     void assertNotFindLikeQueryColumn() {
         assertFalse(encryptTable.findAssistedQueryColumn("notExistLikeQueryColumn").isPresent());
-    }
-    
-    @Test
-    void assertGetPlainColumns() {
-        assertThat(encryptTable.getPlainColumns(), is(Collections.singletonList("plainColumn")));
-    }
-    
-    @Test
-    void assertFindPlainColumn() {
-        Optional<String> actual = encryptTable.findPlainColumn("logicColumn");
-        assertTrue(actual.isPresent());
-        assertThat(actual.get(), is("plainColumn"));
-    }
-    
-    @Test
-    void assertNotFindPlainColumn() {
-        assertFalse(encryptTable.findPlainColumn("notExistLogicColumn").isPresent());
     }
     
     @Test

@@ -79,8 +79,8 @@ import java.util.stream.Stream;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -173,12 +173,18 @@ class MigrationJobAPITest {
     }
     
     @Test
+    void assertBuildNullDataConsistencyCalculateAlgorithm() {
+        DataConsistencyCalculateAlgorithm actual = jobAPI.buildDataConsistencyCalculateAlgorithm(null, null);
+        assertInstanceOf(DataConsistencyCalculateAlgorithm.class, actual);
+    }
+    
+    @Test
     void assertDataConsistencyCheck() {
         MigrationJobConfiguration jobConfig = JobConfigurationBuilder.createJobConfiguration();
         initTableData(jobConfig);
         Optional<String> jobId = jobAPI.start(jobConfig);
         assertTrue(jobId.isPresent());
-        DataConsistencyCalculateAlgorithm calculateAlgorithm = jobAPI.buildDataConsistencyCalculateAlgorithm(jobConfig, "FIXTURE", null);
+        DataConsistencyCalculateAlgorithm calculateAlgorithm = jobAPI.buildDataConsistencyCalculateAlgorithm("FIXTURE", null);
         Map<String, DataConsistencyCheckResult> checkResultMap = jobAPI.dataConsistencyCheck(jobConfig, calculateAlgorithm, new ConsistencyCheckJobItemProgressContext(jobId.get(), 0));
         assertThat(checkResultMap.size(), is(1));
         String checkKey = "ds_0.t_order";
@@ -197,7 +203,7 @@ class MigrationJobAPITest {
         DataConsistencyCountCheckResult equalCountCheckResult = new DataConsistencyCountCheckResult(100, 100);
         DataConsistencyCountCheckResult notEqualCountCheckResult = new DataConsistencyCountCheckResult(100, 95);
         DataConsistencyContentCheckResult equalContentCheckResult = new DataConsistencyContentCheckResult(false);
-        Map<String, DataConsistencyCheckResult> checkResults = new LinkedHashMap<>(2, 1);
+        Map<String, DataConsistencyCheckResult> checkResults = new LinkedHashMap<>(2, 1F);
         checkResults.put("foo_tbl", new DataConsistencyCheckResult(equalCountCheckResult, equalContentCheckResult));
         checkResults.put("bar_tbl", new DataConsistencyCheckResult(notEqualCountCheckResult, equalContentCheckResult));
         assertFalse(jobAPI.aggregateDataConsistencyCheckResults("foo_job", checkResults));
@@ -208,7 +214,7 @@ class MigrationJobAPITest {
         DataConsistencyCountCheckResult equalCountCheckResult = new DataConsistencyCountCheckResult(100, 100);
         DataConsistencyContentCheckResult equalContentCheckResult = new DataConsistencyContentCheckResult(true);
         DataConsistencyContentCheckResult notEqualContentCheckResult = new DataConsistencyContentCheckResult(false);
-        Map<String, DataConsistencyCheckResult> checkResults = new LinkedHashMap<>(2, 1);
+        Map<String, DataConsistencyCheckResult> checkResults = new LinkedHashMap<>(2, 1F);
         checkResults.put("foo_tbl", new DataConsistencyCheckResult(equalCountCheckResult, equalContentCheckResult));
         checkResults.put("bar_tbl", new DataConsistencyCheckResult(equalCountCheckResult, notEqualContentCheckResult));
         assertFalse(jobAPI.aggregateDataConsistencyCheckResults("foo_job", checkResults));
@@ -218,7 +224,7 @@ class MigrationJobAPITest {
     void assertAggregateSameDataConsistencyCheckResults() {
         DataConsistencyCountCheckResult equalCountCheckResult = new DataConsistencyCountCheckResult(100, 100);
         DataConsistencyContentCheckResult equalContentCheckResult = new DataConsistencyContentCheckResult(true);
-        Map<String, DataConsistencyCheckResult> checkResults = new LinkedHashMap<>(2, 1);
+        Map<String, DataConsistencyCheckResult> checkResults = new LinkedHashMap<>(2, 1F);
         checkResults.put("foo_tbl", new DataConsistencyCheckResult(equalCountCheckResult, equalContentCheckResult));
         checkResults.put("bar_tbl", new DataConsistencyCheckResult(equalCountCheckResult, equalContentCheckResult));
         assertTrue(jobAPI.aggregateDataConsistencyCheckResults("foo_job", checkResults));
@@ -234,7 +240,7 @@ class MigrationJobAPITest {
         jobAPI.updateJobItemStatus(jobId.get(), jobItemContext.getShardingItem(), JobStatus.EXECUTE_INVENTORY_TASK);
         Map<Integer, InventoryIncrementalJobItemProgress> progress = jobAPI.getJobProgress(jobConfig);
         for (Entry<Integer, InventoryIncrementalJobItemProgress> entry : progress.entrySet()) {
-            assertSame(entry.getValue().getStatus(), JobStatus.EXECUTE_INVENTORY_TASK);
+            assertThat(entry.getValue().getStatus(), is(JobStatus.EXECUTE_INVENTORY_TASK));
         }
     }
     

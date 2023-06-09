@@ -93,7 +93,7 @@ public final class GenericSchemaBuilder {
     }
     
     private static Collection<String> getAllTableNames(final Collection<ShardingSphereRule> rules) {
-        return rules.stream().filter(each -> each instanceof TableContainedRule).flatMap(each -> ((TableContainedRule) each).getTables().stream()).collect(Collectors.toSet());
+        return rules.stream().filter(TableContainedRule.class::isInstance).flatMap(each -> ((TableContainedRule) each).getTables().stream()).collect(Collectors.toSet());
     }
     
     private static Map<String, SchemaMetaData> loadSchemas(final Collection<String> tableNames, final GenericSchemaBuilderMaterial material) throws SQLException {
@@ -119,7 +119,7 @@ public final class GenericSchemaBuilder {
     
     private static Map<String, ShardingSphereSchema> revise(final Map<String, SchemaMetaData> schemaMetaDataMap, final GenericSchemaBuilderMaterial material) {
         Map<String, SchemaMetaData> result = new LinkedHashMap<>(schemaMetaDataMap);
-        result.putAll(new MetaDataReviseEngine(material.getRules().stream().filter(each -> each instanceof TableContainedRule).collect(Collectors.toList())).revise(result, material));
+        result.putAll(new MetaDataReviseEngine(material.getRules().stream().filter(TableContainedRule.class::isInstance).collect(Collectors.toList())).revise(result, material));
         return convertToSchemaMap(result, material);
     }
     
@@ -127,7 +127,7 @@ public final class GenericSchemaBuilder {
         if (schemaMetaDataMap.isEmpty()) {
             return Collections.singletonMap(material.getDefaultSchemaName(), new ShardingSphereSchema());
         }
-        Map<String, ShardingSphereSchema> result = new ConcurrentHashMap<>(schemaMetaDataMap.size(), 1);
+        Map<String, ShardingSphereSchema> result = new ConcurrentHashMap<>(schemaMetaDataMap.size(), 1F);
         for (Entry<String, SchemaMetaData> entry : schemaMetaDataMap.entrySet()) {
             Map<String, ShardingSphereTable> tables = convertToTableMap(entry.getValue().getTables());
             result.put(entry.getKey().toLowerCase(), new ShardingSphereSchema(tables, new LinkedHashMap<>()));
@@ -136,7 +136,7 @@ public final class GenericSchemaBuilder {
     }
     
     private static Map<String, ShardingSphereTable> convertToTableMap(final Collection<TableMetaData> tableMetaDataList) {
-        Map<String, ShardingSphereTable> result = new LinkedHashMap<>(tableMetaDataList.size(), 1);
+        Map<String, ShardingSphereTable> result = new LinkedHashMap<>(tableMetaDataList.size(), 1F);
         for (TableMetaData each : tableMetaDataList) {
             Collection<ShardingSphereColumn> columns = convertToColumns(each.getColumns());
             Collection<ShardingSphereIndex> indexes = convertToIndexes(each.getIndexes());

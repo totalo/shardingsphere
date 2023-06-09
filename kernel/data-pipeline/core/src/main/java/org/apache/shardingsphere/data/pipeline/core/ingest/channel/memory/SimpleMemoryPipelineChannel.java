@@ -22,7 +22,8 @@ import org.apache.shardingsphere.data.pipeline.api.ingest.channel.AckCallback;
 import org.apache.shardingsphere.data.pipeline.api.ingest.channel.PipelineChannel;
 import org.apache.shardingsphere.data.pipeline.api.ingest.record.Record;
 
-import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -33,7 +34,7 @@ import java.util.concurrent.TimeUnit;
  */
 public final class SimpleMemoryPipelineChannel implements PipelineChannel {
     
-    private final BlockingQueue<Record> queue;
+    private final BlockingQueue<List<Record>> queue;
     
     private final AckCallback ackCallback;
     
@@ -44,24 +45,43 @@ public final class SimpleMemoryPipelineChannel implements PipelineChannel {
     
     @SneakyThrows(InterruptedException.class)
     @Override
-    public void pushRecord(final Record dataRecord) {
-        queue.put(dataRecord);
+    public void pushRecords(final List<Record> records) {
+        queue.put(records);
     }
     
     @SneakyThrows(InterruptedException.class)
     // TODO thread-safe?
     @Override
-    public List<Record> fetchRecords(final int batchSize, final int timeout, final TimeUnit timeUnit) {
-        List<Record> result = new ArrayList<>(batchSize);
-        long start = System.currentTimeMillis();
-        while (batchSize > queue.size()) {
-            if (timeUnit.toMillis(timeout) <= System.currentTimeMillis() - start) {
+    public List<Record> fetchRecords(final int batchSize, final long timeout, final TimeUnit timeUnit) {
+        List<Record> result = new LinkedList<>();
+        long startMillis = System.currentTimeMillis();
+        long timeoutMillis = timeUnit.toMillis(timeout);
+        int recordsCount = 0;
+        do {
+            List<Record> records = queue.poll();
+            if (null == records || records.isEmpty()) {
+                TimeUnit.MILLISECONDS.sleep(Math.min(100, timeoutMillis));
+            } else {
+                recordsCount += records.size();
+                result.addAll(records);
+            }
+            if (recordsCount >= batchSize) {
                 break;
             }
-            TimeUnit.MILLISECONDS.sleep(100L);
-        }
-        queue.drainTo(result, batchSize);
+        } while (System.currentTimeMillis() - startMillis < timeoutMillis);
         return result;
+    }
+    
+    @Override
+    public List<Record> peekRecords() {
+        List<Record> result = queue.peek();
+        return null != result ? result : Collections.emptyList();
+    }
+    
+    @Override
+    public List<Record> pollRecords() {
+        List<Record> result = queue.poll();
+        return null != result ? result : Collections.emptyList();
     }
     
     @Override
