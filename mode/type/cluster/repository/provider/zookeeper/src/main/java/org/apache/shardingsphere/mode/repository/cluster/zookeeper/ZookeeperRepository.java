@@ -239,9 +239,11 @@ public final class ZookeeperRepository implements ClusterPersistRepository, Inst
             caches.put(key, cache);
         }
         CuratorCacheListener curatorCacheListener = CuratorCacheListener.builder()
+                .afterInitialized()
                 .forTreeCache(client, (framework, treeCacheListener) -> {
                     Type changedType = getChangedType(treeCacheListener.getType());
                     if (Type.IGNORED != changedType) {
+                        System.out.println("watch path is :" + treeCacheListener.getData().getPath());
                         listener.onChange(new DataChangedEvent(treeCacheListener.getData().getPath(),
                                 new String(treeCacheListener.getData().getData(), StandardCharsets.UTF_8), changedType));
                     }

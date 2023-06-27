@@ -18,20 +18,19 @@
 package org.apache.shardingsphere.metadata.persist.service.config.database;
 
 import com.google.common.base.Strings;
-import lombok.RequiredArgsConstructor;
 import org.apache.shardingsphere.infra.config.rule.RuleConfiguration;
-import org.apache.shardingsphere.infra.rule.ShardingSphereRule;
+import org.apache.shardingsphere.infra.metadata.version.MetaDataVersion;
 import org.apache.shardingsphere.infra.util.yaml.datanode.YamlDataNode;
 import org.apache.shardingsphere.infra.yaml.config.swapper.rule.NewYamlRuleConfigurationSwapper;
 import org.apache.shardingsphere.infra.yaml.config.swapper.rule.NewYamlRuleConfigurationSwapperEngine;
 import org.apache.shardingsphere.metadata.persist.node.NewDatabaseMetaDataNode;
+import org.apache.shardingsphere.metadata.persist.service.config.AbstractPersistService;
 import org.apache.shardingsphere.mode.spi.PersistRepository;
 
-import javax.sql.DataSource;
-import java.util.Collections;
-import java.util.List;
 import java.util.Collection;
-import java.util.LinkedHashSet;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -39,17 +38,15 @@ import java.util.Map.Entry;
  * TODO Rename DatabaseRulePersistService when metadata structure adjustment completed. #25485
  * Database rule persist service.
  */
-@RequiredArgsConstructor
-public final class NewDatabaseRulePersistService implements NewDatabaseRuleBasedPersistService<Collection<RuleConfiguration>> {
+public final class NewDatabaseRulePersistService extends AbstractPersistService implements DatabaseBasedPersistService<Collection<RuleConfiguration>> {
     
     private static final String DEFAULT_VERSION = "0";
     
     private final PersistRepository repository;
     
-    @Override
-    public void persist(final String databaseName, final Map<String, DataSource> dataSources,
-                        final Collection<ShardingSphereRule> rules, final Collection<RuleConfiguration> configs) {
-        // TODO Load single table refer to #22887
+    public NewDatabaseRulePersistService(final PersistRepository repository) {
+        super(repository);
+        this.repository = repository;
     }
     
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -65,48 +62,73 @@ public final class NewDatabaseRulePersistService implements NewDatabaseRuleBased
         }
     }
     
-    private void persistDataNodes(final String databaseName, final String ruleName, final Collection<YamlDataNode> dataNodes) {
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    @Override
+    public Collection<MetaDataVersion> persistConfig(final String databaseName, final Collection<RuleConfiguration> configs) {
+        Collection<MetaDataVersion> result = new LinkedList<>();
+        Map<RuleConfiguration, NewYamlRuleConfigurationSwapper> yamlConfigs = new NewYamlRuleConfigurationSwapperEngine().swapToYamlRuleConfigurations(configs);
+        for (Entry<RuleConfiguration, NewYamlRuleConfigurationSwapper> entry : yamlConfigs.entrySet()) {
+            Collection<YamlDataNode> dataNodes = entry.getValue().swapToDataNodes(entry.getKey());
+            if (dataNodes.isEmpty()) {
+                continue;
+            }
+            result.addAll(persistDataNodes(databaseName, entry.getValue().getRuleTagName().toLowerCase(), dataNodes));
+        }
+        return result;
+    }
+    
+    private Collection<MetaDataVersion> persistDataNodes(final String databaseName, final String ruleName, final Collection<YamlDataNode> dataNodes) {
+        Collection<MetaDataVersion> result = new LinkedList<>();
         for (YamlDataNode each : dataNodes) {
-            if (Strings.isNullOrEmpty(NewDatabaseMetaDataNode.getDatabaseRuleActiveVersionNode(databaseName, ruleName, each.getKey()))) {
+            List<String> versions = repository.getChildrenKeys(NewDatabaseMetaDataNode.getDatabaseRuleVersionsNode(databaseName, ruleName, each.getKey()));
+            String nextVersion = versions.isEmpty() ? DEFAULT_VERSION : String.valueOf(Integer.parseInt(versions.get(0)) + 1);
+            repository.persist(NewDatabaseMetaDataNode.getDatabaseRuleVersionNode(databaseName, ruleName, each.getKey(), nextVersion), each.getValue());
+            if (Strings.isNullOrEmpty(getActiveVersion(databaseName, ruleName, each.getKey()))) {
                 repository.persist(NewDatabaseMetaDataNode.getDatabaseRuleActiveVersionNode(databaseName, ruleName, each.getKey()), DEFAULT_VERSION);
             }
-            repository.persist(NewDatabaseMetaDataNode.getDatabaseRuleVersionNode(databaseName, ruleName, each.getKey(), DEFAULT_VERSION), each.getValue());
+            result.add(new MetaDataVersion(NewDatabaseMetaDataNode.getDatabaseRuleNode(databaseName, ruleName, each.getKey()), getActiveVersion(databaseName, ruleName, each.getKey()), nextVersion));
+        }
+        return result;
+    }
+    
+    private String getActiveVersion(final String databaseName, final String ruleName, final String key) {
+        return repository.getDirectly(NewDatabaseMetaDataNode.getDatabaseRuleActiveVersionNode(databaseName, ruleName, key));
+    }
+    
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    @Override
+    public void delete(final String databaseName, final Collection<RuleConfiguration> configs) {
+        Map<RuleConfiguration, NewYamlRuleConfigurationSwapper> yamlConfigs = new NewYamlRuleConfigurationSwapperEngine().swapToYamlRuleConfigurations(configs);
+        for (Entry<RuleConfiguration, NewYamlRuleConfigurationSwapper> entry : yamlConfigs.entrySet()) {
+            Collection<YamlDataNode> dataNodes = entry.getValue().swapToDataNodes(entry.getKey());
+            if (dataNodes.isEmpty()) {
+                continue;
+            }
+            deleteDataNodes(databaseName, entry.getValue().getRuleTagName().toLowerCase(), dataNodes);
+        }
+    }
+    
+    private void deleteDataNodes(final String databaseName, final String ruleName, final Collection<YamlDataNode> dataNodes) {
+        for (YamlDataNode each : dataNodes) {
+            repository.delete(NewDatabaseMetaDataNode.getDatabaseRuleNode(databaseName, ruleName, each.getKey()));
         }
     }
     
     @Override
     public Collection<RuleConfiguration> load(final String databaseName) {
-        Collection<String> result = new LinkedHashSet<>();
-        getAllNodes(result, NewDatabaseMetaDataNode.getRulesNode(databaseName));
-        if (1 == result.size()) {
-            return Collections.emptyList();
-        }
-        return new NewYamlRuleConfigurationSwapperEngine().swapToRuleConfigurations(getDataNodes(result));
+        Collection<YamlDataNode> dataNodes = getDataNodes(NewDatabaseMetaDataNode.getRulesNode(databaseName));
+        return dataNodes.isEmpty() ? Collections.emptyList() : new NewYamlRuleConfigurationSwapperEngine().swapToRuleConfigurations(dataNodes);
     }
     
+    /**
+     * Load rule configuration.
+     *
+     * @deprecated Remove this method when metadata structure adjustment completed. #25485
+     */
     @Deprecated
     @Override
-    public Collection<RuleConfiguration> load(final String databaseName, final String version) {
+    public Collection<RuleConfiguration> load(final String databaseName, final String name) {
         // TODO Remove this method when metadata structure adjustment completed. #25485
         return Collections.emptyList();
-    }
-    
-    private void getAllNodes(final Collection<String> keys, final String path) {
-        keys.add(path);
-        List<String> childrenKeys = repository.getChildrenKeys(path);
-        if (childrenKeys.isEmpty()) {
-            return;
-        }
-        for (String each : childrenKeys) {
-            getAllNodes(keys, String.join("/", "", path, each));
-        }
-    }
-    
-    private Collection<YamlDataNode> getDataNodes(final Collection<String> keys) {
-        Collection<YamlDataNode> result = new LinkedHashSet<>();
-        for (String each : keys) {
-            result.add(new YamlDataNode(each, repository.getDirectly(each)));
-        }
-        return result;
     }
 }

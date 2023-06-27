@@ -18,18 +18,15 @@
 package org.apache.shardingsphere.mode.manager.cluster.coordinator.subscriber;
 
 import com.google.common.eventbus.Subscribe;
-import org.apache.shardingsphere.infra.metadata.database.ShardingSphereDatabase;
-import org.apache.shardingsphere.infra.rule.ShardingSphereRule;
-import org.apache.shardingsphere.infra.rule.builder.database.DatabaseRulesBuilder;
-import org.apache.shardingsphere.mode.event.config.RuleConfigurationChangedEvent;
+import org.apache.shardingsphere.mode.event.config.DatabaseRuleConfigurationChangedEvent;
+import org.apache.shardingsphere.mode.event.config.global.AlterGlobalRuleConfigurationEvent;
+import org.apache.shardingsphere.mode.event.config.global.AlterPropertiesEvent;
+import org.apache.shardingsphere.mode.event.config.global.DeleteGlobalRuleConfigurationEvent;
 import org.apache.shardingsphere.mode.manager.ContextManager;
-
-import java.util.Collection;
-import java.util.LinkedList;
 
 /**
  * TODO Rename ConfigurationChangedSubscriber when metadata structure adjustment completed. #25485
- * New Configuration changed subscriber.
+ * New configuration changed subscriber.
  */
 @SuppressWarnings("UnstableApiUsage")
 public final class NewConfigurationChangedSubscriber {
@@ -41,13 +38,49 @@ public final class NewConfigurationChangedSubscriber {
         contextManager.getInstanceContext().getEventBusContext().register(this);
     }
     
+    /**
+     * Renew for database rule configuration.
+     *
+     * @param event database rule changed event
+     */
     @Subscribe
-    private synchronized void renew(final RuleConfigurationChangedEvent event) {
-        String databaseName = event.getDatabaseName();
-        ShardingSphereDatabase database = contextManager.getMetaDataContexts().getMetaData().getDatabase(databaseName);
-        Collection<ShardingSphereRule> rules = new LinkedList<>(database.getRuleMetaData().getRules());
-        rules.addAll(DatabaseRulesBuilder.build(databaseName, database.getResourceMetaData().getDataSources(), database.getRuleMetaData().getRules(),
-                event.getRuleConfig(), contextManager.getInstanceContext()));
-        database.getRuleMetaData().getRules().addAll(rules);
+    public synchronized void renew(final DatabaseRuleConfigurationChangedEvent event) {
+        contextManager.alterRuleConfiguration(event.getDatabaseName(), event.getRuleConfig());
+    }
+    
+    /**
+     * Renew for global rule configuration.
+     *
+     * @param event global rule alter event
+     */
+    @Subscribe
+    public synchronized void renew(final AlterGlobalRuleConfigurationEvent event) {
+        if (!event.getActiveVersion().equals(contextManager.getInstanceContext().getModeContextManager().getActiveVersionByKey(event.getActiveVersionKey()))) {
+            return;
+        }
+        contextManager.alterGlobalRuleConfiguration(contextManager.getMetaDataContexts().getPersistService().getGlobalRuleService().load(event.getRuleSimpleName()));
+    }
+    
+    /**
+     * Renew for global rule configuration.
+     *
+     * @param event global rule delete event
+     */
+    @Subscribe
+    public synchronized void renew(final DeleteGlobalRuleConfigurationEvent event) {
+        contextManager.dropGlobalRuleConfiguration(event.getRuleSimpleName());
+    }
+    
+    /**
+     * Renew for global properties.
+     *
+     * @param event global properties alter event
+     */
+    @Subscribe
+    public synchronized void renew(final AlterPropertiesEvent event) {
+        if (!event.getActiveVersion().equals(contextManager.getInstanceContext().getModeContextManager().getActiveVersionByKey(event.getActiveVersionKey()))) {
+            return;
+        }
+        contextManager.alterProperties(contextManager.getMetaDataContexts().getPersistService().getPropsService().load());
     }
 }

@@ -18,20 +18,17 @@
 package org.apache.shardingsphere.readwritesplitting.event;
 
 import com.google.common.base.Strings;
-import org.apache.shardingsphere.infra.config.algorithm.AlgorithmConfiguration;
+import org.apache.shardingsphere.infra.metadata.nodepath.RuleNodePath;
 import org.apache.shardingsphere.infra.rule.event.GovernanceEvent;
-import org.apache.shardingsphere.infra.util.yaml.YamlEngine;
 import org.apache.shardingsphere.mode.event.DataChangedEvent;
 import org.apache.shardingsphere.mode.event.DataChangedEvent.Type;
-import org.apache.shardingsphere.mode.event.config.RuleConfigurationEventBuilder;
-import org.apache.shardingsphere.readwritesplitting.api.rule.ReadwriteSplittingDataSourceRuleConfiguration;
-import org.apache.shardingsphere.readwritesplitting.event.config.AddReadwriteSplittingConfigurationEvent;
-import org.apache.shardingsphere.readwritesplitting.event.config.AlterReadwriteSplittingConfigurationEvent;
-import org.apache.shardingsphere.readwritesplitting.event.config.DeleteReadwriteSplittingConfigurationEvent;
-import org.apache.shardingsphere.readwritesplitting.event.loadbalance.AddLoadBalanceEvent;
+import org.apache.shardingsphere.mode.spi.RuleConfigurationEventBuilder;
+import org.apache.shardingsphere.readwritesplitting.event.datasource.AddReadwriteSplittingDataSourceEvent;
+import org.apache.shardingsphere.readwritesplitting.event.datasource.AlterReadwriteSplittingDataSourceEvent;
+import org.apache.shardingsphere.readwritesplitting.event.datasource.DeleteReadwriteSplittingDataSourceEvent;
 import org.apache.shardingsphere.readwritesplitting.event.loadbalance.AlterLoadBalanceEvent;
 import org.apache.shardingsphere.readwritesplitting.event.loadbalance.DeleteLoadBalanceEvent;
-import org.apache.shardingsphere.readwritesplitting.metadata.converter.ReadwriteSplittingNodeConverter;
+import org.apache.shardingsphere.readwritesplitting.metadata.nodepath.ReadwriteSplittingNodePath;
 
 import java.util.Optional;
 
@@ -40,16 +37,18 @@ import java.util.Optional;
  */
 public final class ReadwriteSplittingRuleConfigurationEventBuilder implements RuleConfigurationEventBuilder {
     
+    private final RuleNodePath readwriteSplittingRuleNodePath = ReadwriteSplittingNodePath.getInstance();
+    
     @Override
     public Optional<GovernanceEvent> build(final String databaseName, final DataChangedEvent event) {
-        if (!ReadwriteSplittingNodeConverter.isReadwriteSplittingPath(event.getKey()) || Strings.isNullOrEmpty(event.getValue())) {
+        if (!readwriteSplittingRuleNodePath.getRoot().isValidatedPath(event.getKey()) || Strings.isNullOrEmpty(event.getValue())) {
             return Optional.empty();
         }
-        Optional<String> groupName = ReadwriteSplittingNodeConverter.getGroupName(event.getKey());
+        Optional<String> groupName = readwriteSplittingRuleNodePath.getNamedItem(ReadwriteSplittingNodePath.DATA_SOURCES).getNameByActiveVersion(event.getKey());
         if (groupName.isPresent() && !Strings.isNullOrEmpty(event.getValue())) {
             return createReadwriteSplittingConfigEvent(databaseName, groupName.get(), event);
         }
-        Optional<String> loadBalancerName = ReadwriteSplittingNodeConverter.getLoadBalancerName(event.getKey());
+        Optional<String> loadBalancerName = readwriteSplittingRuleNodePath.getNamedItem(ReadwriteSplittingNodePath.LOAD_BALANCERS).getNameByActiveVersion(event.getKey());
         if (loadBalancerName.isPresent() && !Strings.isNullOrEmpty(event.getValue())) {
             return createLoadBalanceEvent(databaseName, loadBalancerName.get(), event);
         }
@@ -58,25 +57,18 @@ public final class ReadwriteSplittingRuleConfigurationEventBuilder implements Ru
     
     private Optional<GovernanceEvent> createReadwriteSplittingConfigEvent(final String databaseName, final String groupName, final DataChangedEvent event) {
         if (Type.ADDED == event.getType()) {
-            return Optional.of(new AddReadwriteSplittingConfigurationEvent<>(databaseName,
-                    YamlEngine.unmarshal(event.getValue(), ReadwriteSplittingDataSourceRuleConfiguration.class)));
+            return Optional.of(new AddReadwriteSplittingDataSourceEvent(databaseName, groupName, event.getKey(), event.getValue()));
         }
         if (Type.UPDATED == event.getType()) {
-            return Optional.of(new AlterReadwriteSplittingConfigurationEvent<>(databaseName, groupName,
-                    YamlEngine.unmarshal(event.getValue(), ReadwriteSplittingDataSourceRuleConfiguration.class)));
+            return Optional.of(new AlterReadwriteSplittingDataSourceEvent(databaseName, groupName, event.getKey(), event.getValue()));
         }
-        return Optional.of(new DeleteReadwriteSplittingConfigurationEvent(databaseName, groupName));
+        return Optional.of(new DeleteReadwriteSplittingDataSourceEvent(databaseName, groupName));
     }
     
-    private Optional<GovernanceEvent> createLoadBalanceEvent(final String databaseName, final String loadBalanceName, final DataChangedEvent event) {
-        if (Type.ADDED == event.getType()) {
-            return Optional.of(new AddLoadBalanceEvent<>(databaseName, loadBalanceName,
-                    YamlEngine.unmarshal(event.getValue(), AlgorithmConfiguration.class)));
+    private Optional<GovernanceEvent> createLoadBalanceEvent(final String databaseName, final String loadBalancerName, final DataChangedEvent event) {
+        if (Type.ADDED == event.getType() || Type.UPDATED == event.getType()) {
+            return Optional.of(new AlterLoadBalanceEvent(databaseName, loadBalancerName, event.getKey(), event.getValue()));
         }
-        if (Type.UPDATED == event.getType()) {
-            return Optional.of(new AlterLoadBalanceEvent<>(databaseName, loadBalanceName,
-                    YamlEngine.unmarshal(event.getValue(), AlgorithmConfiguration.class)));
-        }
-        return Optional.of(new DeleteLoadBalanceEvent(databaseName, loadBalanceName));
+        return Optional.of(new DeleteLoadBalanceEvent(databaseName, loadBalancerName));
     }
 }

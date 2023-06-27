@@ -33,6 +33,7 @@ import java.util.Properties;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Deprecated
 class NewYamlCompatibleEncryptRuleConfigurationSwapperTest {
@@ -52,13 +53,42 @@ class NewYamlCompatibleEncryptRuleConfigurationSwapperTest {
         Collection<YamlDataNode> result = swapper.swapToDataNodes(config);
         assertThat(result.size(), is(2));
         Iterator<YamlDataNode> iterator = result.iterator();
-        assertThat(iterator.next().getKey(), is("tables/foo"));
         assertThat(iterator.next().getKey(), is("encryptors/FOO"));
+        assertThat(iterator.next().getKey(), is("tables/foo"));
     }
     
     private CompatibleEncryptRuleConfiguration createMaximumEncryptRule() {
         Collection<EncryptTableRuleConfiguration> tables = new LinkedList<>();
-        tables.add(new EncryptTableRuleConfiguration("foo", Collections.singleton(new EncryptColumnRuleConfiguration("foo_column", new EncryptColumnItemRuleConfiguration("FIXTURE")))));
+        tables.add(new EncryptTableRuleConfiguration("foo", Collections.singleton(new EncryptColumnRuleConfiguration("foo_column", new EncryptColumnItemRuleConfiguration("FIXTURE", "FOO")))));
         return new CompatibleEncryptRuleConfiguration(tables, Collections.singletonMap("FOO", new AlgorithmConfiguration("FOO", new Properties())));
+    }
+    
+    @Test
+    void assertSwapToObjectEmpty() {
+        Collection<YamlDataNode> config = new LinkedList<>();
+        CompatibleEncryptRuleConfiguration result = swapper.swapToObject(config);
+        assertTrue(result == null);
+    }
+    
+    @Test
+    void assertSwapToObject() {
+        Collection<YamlDataNode> config = new LinkedList<>();
+        config.add(new YamlDataNode("/metadata/foo_db/rules/compatible_encrypt/tables/foo/versions/0", "columns:\n"
+                + "  foo_column:\n"
+                + "    cipherColumn: FIXTURE\n"
+                + "    encryptorName: FOO\n"
+                + "    logicColumn: foo_column\n"
+                + "name: foo\n"));
+        config.add(new YamlDataNode("/metadata/foo_db/rules/compatible_encrypt/encryptors/FOO/versions/0", "type: FOO\n"));
+        CompatibleEncryptRuleConfiguration result = swapper.swapToObject(config);
+        assertThat(result.getTables().size(), is(1));
+        assertThat(result.getTables().iterator().next().getName(), is("foo"));
+        assertThat(result.getTables().iterator().next().getColumns().size(), is(1));
+        assertThat(result.getTables().iterator().next().getColumns().iterator().next().getName(), is("foo_column"));
+        assertThat(result.getTables().iterator().next().getColumns().iterator().next().getCipher().getName(), is("FIXTURE"));
+        assertThat(result.getTables().iterator().next().getColumns().iterator().next().getCipher().getEncryptorName(), is("FOO"));
+        assertThat(result.getEncryptors().size(), is(1));
+        assertThat(result.getEncryptors().get("FOO").getType(), is("FOO"));
+        assertThat(result.getEncryptors().get("FOO").getProps().size(), is(0));
     }
 }
