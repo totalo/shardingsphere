@@ -19,7 +19,7 @@ package org.apache.shardingsphere.test.e2e.container.config;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import org.apache.shardingsphere.infra.database.type.DatabaseType;
+import org.apache.shardingsphere.infra.database.core.type.DatabaseType;
 import org.apache.shardingsphere.test.e2e.env.container.atomic.adapter.config.AdaptorContainerConfiguration;
 import org.apache.shardingsphere.test.e2e.env.container.atomic.constants.ProxyContainerConstants;
 
@@ -49,13 +49,13 @@ public final class ProxyClusterContainerConfigurationFactory {
         Map<String, String> result = new HashMap<>(3, 1F);
         result.put("/env/common/cluster/proxy/conf/logback.xml", ProxyContainerConstants.CONFIG_PATH_IN_CONTAINER + "logback.xml");
         result.put("/env/scenario/" + scenario + "/proxy/conf/" + databaseType.getType().toLowerCase(), ProxyContainerConstants.CONFIG_PATH_IN_CONTAINER);
-        result.put(serverYamlExists(scenario) ? "/env/scenario/" + scenario + "/cluster/server.yaml"
+        result.put(serverYamlExists(scenario) ? "/env/scenario/" + scenario + "/proxy/mode/cluster/server.yaml"
                 : "/env/common/cluster/proxy/conf/server.yaml", ProxyContainerConstants.CONFIG_PATH_IN_CONTAINER + "server.yaml");
         return result;
     }
     
     private static boolean serverYamlExists(final String scenario) {
-        URL url = Thread.currentThread().getContextClassLoader().getResource("env/scenario/" + scenario + "/cluster/server.yaml");
+        URL url = Thread.currentThread().getContextClassLoader().getResource("env/scenario/" + scenario + "/proxy/mode/cluster/server.yaml");
         return null != url;
     }
 }

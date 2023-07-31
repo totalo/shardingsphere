@@ -24,10 +24,10 @@ import org.apache.shardingsphere.data.pipeline.common.config.CreateTableConfigur
 import org.apache.shardingsphere.data.pipeline.common.datasource.PipelineDataSourceManager;
 import org.apache.shardingsphere.data.pipeline.common.datasource.PipelineDataSourceWrapper;
 import org.apache.shardingsphere.data.pipeline.common.metadata.generator.PipelineDDLGenerator;
-import org.apache.shardingsphere.data.pipeline.spi.sqlbuilder.PipelineSQLBuilder;
-import org.apache.shardingsphere.data.pipeline.util.spi.PipelineTypedSPILoader;
-import org.apache.shardingsphere.infra.database.type.DatabaseType;
-import org.apache.shardingsphere.infra.database.type.DatabaseTypeEngine;
+import org.apache.shardingsphere.data.pipeline.common.sqlbuilder.PipelineCommonSQLBuilder;
+import org.apache.shardingsphere.infra.database.core.metadata.database.DialectDatabaseMetaData;
+import org.apache.shardingsphere.infra.database.core.spi.DatabaseTypedSPILoader;
+import org.apache.shardingsphere.infra.database.core.type.DatabaseType;
 import org.apache.shardingsphere.infra.parser.SQLParserEngine;
 
 import javax.sql.DataSource;
@@ -52,19 +52,20 @@ public abstract class AbstractDataSourcePreparer implements DataSourcePreparer {
     @Override
     public void prepareTargetSchemas(final PrepareTargetSchemasParameter param) throws SQLException {
         DatabaseType targetDatabaseType = param.getTargetDatabaseType();
-        if (!targetDatabaseType.isSchemaAvailable()) {
+        DialectDatabaseMetaData dialectDatabaseMetaData = DatabaseTypedSPILoader.getService(DialectDatabaseMetaData.class, targetDatabaseType);
+        if (!dialectDatabaseMetaData.isSchemaAvailable()) {
             return;
         }
         CreateTableConfiguration createTableConfig = param.getCreateTableConfig();
-        String defaultSchema = DatabaseTypeEngine.getDefaultSchemaName(targetDatabaseType).orElse(null);
-        PipelineSQLBuilder sqlBuilder = PipelineTypedSPILoader.getDatabaseTypedService(PipelineSQLBuilder.class, targetDatabaseType.getType());
+        String defaultSchema = dialectDatabaseMetaData.getDefaultSchema().orElse(null);
+        PipelineCommonSQLBuilder pipelineSQLBuilder = new PipelineCommonSQLBuilder(targetDatabaseType);
         Collection<String> createdSchemaNames = new HashSet<>();
         for (CreateTableEntry each : createTableConfig.getCreateTableEntries()) {
             String targetSchemaName = each.getTargetName().getSchemaName().getOriginal();
             if (null == targetSchemaName || targetSchemaName.equalsIgnoreCase(defaultSchema) || createdSchemaNames.contains(targetSchemaName)) {
                 continue;
             }
-            Optional<String> sql = sqlBuilder.buildCreateSchemaSQL(targetSchemaName);
+            Optional<String> sql = pipelineSQLBuilder.buildCreateSchemaSQL(targetSchemaName);
             if (sql.isPresent()) {
                 executeCreateSchema(param.getDataSourceManager(), each.getTargetDataSourceConfig(), sql.get());
                 createdSchemaNames.add(targetSchemaName);

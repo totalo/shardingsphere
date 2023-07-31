@@ -17,8 +17,8 @@
 
 package org.apache.shardingsphere.sharding.decider;
 
-import org.apache.shardingsphere.infra.binder.statement.SQLStatementContext;
-import org.apache.shardingsphere.infra.binder.statement.dml.SelectStatementContext;
+import org.apache.shardingsphere.infra.binder.context.statement.SQLStatementContext;
+import org.apache.shardingsphere.infra.binder.context.statement.dml.SelectStatementContext;
 import org.apache.shardingsphere.infra.datanode.DataNode;
 import org.apache.shardingsphere.infra.metadata.database.ShardingSphereDatabase;
 import org.apache.shardingsphere.infra.metadata.database.rule.ShardingSphereRuleMetaData;
@@ -57,7 +57,7 @@ public final class ShardingSQLFederationDecider implements SQLFederationDecider<
         if (!selectStatementContext.isContainsJoinQuery() || rule.isAllTablesInSameDataSource(tableNames)) {
             return false;
         }
-        return tableNames.size() <= 1 || !rule.isAllBindingTables(database, selectStatementContext, tableNames);
+        return tableNames.size() > 1 && !rule.isAllBindingTables(database, selectStatementContext, tableNames);
     }
     
     private Collection<DataNode> getTableDataNodes(final ShardingRule rule, final Collection<String> tableNames) {

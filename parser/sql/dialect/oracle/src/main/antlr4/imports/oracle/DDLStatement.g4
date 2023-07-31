@@ -56,8 +56,15 @@ compilerParametersClause
     : parameterName EQ_ parameterValue
     ;
 
+dropContext
+    : DROP CONTEXT contextName;
+
 dropTable
     : DROP TABLE tableName (CASCADE CONSTRAINTS)? (PURGE)?
+    ;
+
+dropTableSpace
+    : DROP TABLESPACE tablespaceName (INCLUDING CONTENTS ((AND | KEEP) DATAFILES)? (CASCADE CONSTRAINTS)? )?
     ;
 
 dropPackage
@@ -82,6 +89,10 @@ dropEdition
 
 dropOutline
     : DROP OUTLINE outlineName
+    ;
+
+dropCluster
+    : DROP CLUSTER (schemaName DOT_)? clusterName (INCLUDING TABLES (CASCADE CONSTRAINTS)?)?
     ;
 
 alterOutline
@@ -464,22 +475,83 @@ objectProperties
     ;
 
 alterIndexInformationClause
-    : rebuildClause ((DEFERRED|IMMEDIATE) | INVALIDATION)?
+    : (deallocateUnusedClause
+    | allocateExtentClause
+    | shrinkClause
     | parallelClause
+    | loggingClause
+    | partialIndexClause)+
+    | rebuildClause ((DEFERRED | IMMEDIATE) | INVALIDATION)?
+    | parallelClause
+    | PARAMETERS LP_ odciParameters RP_
     | COMPILE
     | (ENABLE | DISABLE)
-    | UNUSABLE ONLINE? ((DEFERRED|IMMEDIATE)|INVALIDATION)?
+    | UNUSABLE ONLINE? ((DEFERRED | IMMEDIATE) | INVALIDATION)?
     | (VISIBLE | INVISIBLE)
     | renameIndexClause
     | COALESCE CLEANUP? ONLY? parallelClause?
     | ((MONITORING | NOMONITORING) USAGE)
     | UPDATE BLOCK REFERENCES
+    | alterIndexPartitioning
     ;
 
 renameIndexClause
     : (RENAME TO indexName)?
     ;
-    
+
+alterIndexPartitioning
+    : modifyIndexDefaultAttrs
+    | addHashIndexPartition
+    | modifyIndexPartition
+    | renameIndexPartition
+    | dropIndexPartition
+    | splitIndexPartition
+    | coalesceIndexPartition
+    | modifyIndexsubPartition
+    ;
+
+modifyIndexDefaultAttrs
+    : MODIFY DEFAULT ATTRIBUTES (FOR PARTITION partitionName)? (physicalAttributesClause | TABLESPACE (tablespaceName | DEFAULT) | loggingClause)+
+    ;
+
+addHashIndexPartition
+    : ADD PARTITION partitionName? (TABLESPACE tablespaceName)? indexCompression? parallelClause?
+    ;
+
+modifyIndexPartition
+    : MODIFY PARTITION partitionName
+    ( (deallocateUnusedClause | allocateExtentClause | physicalAttributesClause | loggingClause | indexCompression)+ 
+    | PARAMETERS LP_ odciParameters RP_
+    | COALESCE (CLEANUP | ONLY | parallelClause)?
+    | UPDATE BLOCK REFERENCES
+    | UNUSABLE
+    )
+    ;
+
+renameIndexPartition
+    : RENAME (PARTITION partitionName | SUBPARTITION subpartitionName) TO newName
+    ;
+
+dropIndexPartition
+    : DROP PARTITION partitionName
+    ;
+
+splitIndexPartition
+    : SPLIT PARTITION partitionName AT LP_ literals (COMMA_ literals)* RP_ (INTO LP_ indexPartitionDescription COMMA_ indexPartitionDescription RP_)? (parallelClause)?
+    ;
+
+indexPartitionDescription
+    : PARTITION (partitionName ((segmentAttributesClause | indexCompression)+ | PARAMETERS LP_ odciParameters RP_)? (USABLE | UNUSABLE)?)?
+    ;
+
+coalesceIndexPartition
+    : COALESCE PARTITION parallelClause?
+    ;
+
+modifyIndexsubPartition
+    : MODIFY SUBPARTITION subpartitionName (UNUSABLE | allocateExtentClause | deallocateUnusedClause)
+    ;
+
 objectTableSubstitution
     : NOT? SUBSTITUTABLE AT ALL LEVELS
     ;
@@ -568,16 +640,20 @@ loggingClause
     : LOGGING | NOLOGGING |  FILESYSTEM_LIKE_LOGGING
     ;
 
+partialIndexClause
+    : INDEXING (PARTIAL | FULL)
+    ;
+
 storageClause
     : STORAGE LP_
     (INITIAL sizeClause
     | NEXT sizeClause
-    | MINEXTENTS NUMBER_
-    | MAXEXTENTS (NUMBER_ | UNLIMITED)
+    | MINEXTENTS INTEGER_
+    | MAXEXTENTS (INTEGER_ | UNLIMITED)
     | maxsizeClause
-    | PCTINCREASE NUMBER_
-    | FREELISTS NUMBER_
-    | FREELIST GROUPS NUMBER_
+    | PCTINCREASE INTEGER_
+    | FREELISTS INTEGER_
+    | FREELIST GROUPS INTEGER_
     | OPTIMAL (sizeClause | NULL)?
     | BUFFER_POOL (KEEP | RECYCLE | DEFAULT)
     | FLASH_CACHE (KEEP | NONE | DEFAULT)
@@ -1240,7 +1316,7 @@ supplementalLogGrpClause
     ;
 
 supplementalIdKeyClause
-    : DATA LP_ (ALL | PRIMARY KEY | UNIQUE | FOREIGN KEY) (COMMA_ (ALL | PRIMARY KEY | UNIQUE | FOREIGN KEY))* RP_ COLUMNS
+    : DATA LP_ (ALL | PRIMARY KEY | UNIQUE INDEX? | FOREIGN KEY) (COMMA_ (ALL | PRIMARY KEY | UNIQUE INDEX? | FOREIGN KEY))* RP_ COLUMNS
     ;
 
 alterSession
@@ -1358,7 +1434,7 @@ alterDatabase
     ;
 
 databaseClauses
-    : DATABASE databaseName | PLUGGABLE DATABASE pdbName
+    : DATABASE databaseName? | PLUGGABLE DATABASE pdbName?
     ;
 
 startupClauses
@@ -1380,7 +1456,7 @@ generalRecovery
     ;
 
 fullDatabaseRecovery
-    : STANDBY? DATABASE
+    : STANDBY? DATABASE?
     ((UNTIL (CANCEL | TIME dateValue | CHANGE NUMBER_ | CONSISTENT)
     | USING BACKUP CONTROLFILE
     | SNAPSHOT TIME dateValue
@@ -1394,7 +1470,7 @@ partialDatabaseRecovery
 
 managedStandbyRecovery
     : RECOVER (MANAGED STANDBY DATABASE
-    ((USING ARCHIVED LOGFILE | DISCONNECT (FROM SESSION)?
+    ((USING (ARCHIVED | CURRENT) LOGFILE | DISCONNECT (FROM SESSION)?
     | NODELAY
     | UNTIL CHANGE NUMBER_
     | UNTIL CONSISTENT | USING INSTANCES (ALL | NUMBER_) | parallelClause)+
@@ -1460,13 +1536,13 @@ logfileClauses
     ;
 
 logfileDescriptor
-    : GROUP NUMBER_ | LP_ fileName (COMMA_ fileName)* RP_ | fileName
+    : GROUP INTEGER_ | LP_ fileName (COMMA_ fileName)* RP_ | fileName
     ;
 
 addLogfileClauses
     : ADD STANDBY? LOGFILE
-    (((INSTANCE instanceName)? | (THREAD SQ_ NUMBER_ SQ_)?)
-    (GROUP NUMBER_)? redoLogFileSpec (COMMA_ (GROUP NUMBER_)? redoLogFileSpec)*
+    (((INSTANCE SQ_ instanceName SQ_)? | (THREAD INTEGER_)?)
+    (GROUP INTEGER_)? redoLogFileSpec (COMMA_ (GROUP INTEGER_)? redoLogFileSpec)*
     | MEMBER fileName REUSE? (COMMA_ fileName REUSE?)* TO logfileDescriptor (COMMA_ logfileDescriptor)*)
     ;
 
@@ -1530,7 +1606,7 @@ registerLogfileClause
 
 commitSwitchoverClause
     : (PREPARE | COMMIT) TO SWITCHOVER
-    ( TO (((PHYSICAL | LOGICAL)? PRIMARY | PHYSICAL? STANDBY) ((WITH | WITHOUT) SESSION SHUTDOWN (WAIT | NOWAIT))?
+    ( TO (((PHYSICAL | LOGICAL)? PRIMARY | PHYSICAL? STANDBY) ((WITH | WITHOUT) SESSION SHUTDOWN (WAIT | NOWAIT)?)?
     | LOGICAL STANDBY)
     | CANCEL
     )?
@@ -2172,6 +2248,10 @@ dropDirectory
     : DROP DIRECTORY directoryName
     ;
 
+dropType
+    : DROP TYPE typeName (FORCE|VALIDATE)?
+    ;
+
 createFunction
     : CREATE (OR REPLACE)? (EDITIONABLE | NONEDITIONABLE)? FUNCTION plsqlFunctionSource
     ;
@@ -2191,7 +2271,7 @@ plsqlFunctionSource
     ;
 
 parameterDeclaration
-    : parameterName (IN? dataType ((COLON_ EQ_ | DEFAULT) expr)? | IN? OUT NOCOPY? dataType)?
+    : parameterName (IN? dataType ((ASSIGNMENT_OPERATOR_ | DEFAULT) expr)? | IN? OUT NOCOPY? dataType)?
     ;
 
 sharingClause
@@ -2405,7 +2485,7 @@ alterFlashbackArchive
     ( SET DEFAULT
     | (ADD | MODIFY) TABLESPACE tablespaceName flashbackArchiveQuota?
     | REMOVE TABLESPACE tablespaceName
-    | MODIFY RETENTION flashbackArchiveRetention
+    | MODIFY RETENTION? flashbackArchiveRetention
     | PURGE purgeClause
     | NO? OPTIMIZE DATA)
     ;
@@ -2436,7 +2516,7 @@ attribute
     ;
 
 attributeNameAndValue
-    : SQ_ attributeName SQ_ EQ_ SQ_ attributeValue SQ_
+    : attributeName EQ_ attributeValue
     ;
 
 dropDiskgroup
@@ -2814,7 +2894,7 @@ dropDiskClause
     ;
 
 resizeDiskClause
-    : RESIZE ALL (SIZE sizeClause)?
+    : RESIZE (ALL | DISKS IN FAILGROUP failgroupName) (SIZE sizeClause)?
     ;
 
 rebalanceDiskgroupClause
@@ -2860,7 +2940,7 @@ diskOfflineClause
     ;
 
 timeoutClause
-    : DROP AFTER INTEGER_ (M | H)
+    : DROP AFTER INTEGER_ TIME_UNIT
     ;
 
 checkDiskgroupClause
@@ -2873,7 +2953,7 @@ diskgroupTemplateClauses
     ;
 
 qualifiedTemplateClause
-    : ATTRIBUTE LP_ redundancyClause stripingClause diskRegionClause RP_
+    : (ATTRIBUTE | ATTRIBUTES) LP_ redundancyClause stripingClause diskRegionClause RP_
     ;
 
 redundancyClause
@@ -2933,7 +3013,7 @@ convertRedundancyClause
 
 usergroupClauses
     : (ADD USERGROUP SQ_ usergroupName SQ_ WITH MEMBER SQ_ username SQ_ (COMMA_ SQ_ username SQ_)*
-    | MODIFY USERGROUP SQ_ usergroupName SQ_ (ADD | DROP) MEMBER SQ_ username SQ_ (COMMA_ SQ_ username SQ_)*
+    | MODIFY USERGROUP usergroupName (ADD | DROP) MEMBER username (COMMA_ username)*
     | DROP USERGROUP SQ_ usergroupName SQ_)
     ;
 
@@ -2953,7 +3033,7 @@ fileOwnerClause
     ;
 
 setOwnerClause
-    :OWNER EQ_ SQ_ username SQ_ | GROUP EQ_ SQ_ usergroupName SQ_
+    : OWNER EQ_ username | GROUP EQ_ usergroupName
     ;
 
 scrubClause
@@ -3482,11 +3562,19 @@ dropIndexType
     : DROP INDEXTYPE indexTypeName FORCE?
     ;
 
+dropProfile
+    : DROP PROFILE profileName CASCADE?
+    ;
+
 dropPluggableDatabase
     : DROP PLUGGABLE DATABASE pdbName ((KEEP | INCLUDING) DATAFILES)?
     ;
 
- dropJava
+dropSequence
+    : DROP SEQUENCE (schemaName DOT_)? sequenceName
+    ;
+
+dropJava
      : DROP JAVA (SOURCE | CLASS | RESOURCE) objectName
      ;
 
@@ -3506,3 +3594,79 @@ dropMaterializedZonemap
     : DROP MATERIALIZED ZONEMAP zonemapName
     ;
 
+tablespaceEncryptionSpec
+    : USING encryptAlgorithmName
+    ;
+
+tableCompressionTableSpace
+    : COMPRESS
+    | COMPRESS BASIC
+    | COMPRESS (FOR (OLTP | ((QUERY | ARCHIVE) (LOW | HIGH)?)))
+    | NOCOMPRESS
+    ;
+
+createTablespace
+    : CREATE (BIGFILE|SMALLFILE)? (DATAFILE fileSpecifications)? permanentTablespaceClause
+    ;
+
+permanentTablespaceClause
+    : TABLESPACE tablespaceName (
+    (MINIMUM EXTEND sizeClause)
+    | (BLOCKSIZE INTEGER_ K?)
+    | loggingClause
+    | (FORCE LOGGING)
+    | ENCRYPTION tablespaceEncryptionSpec
+    | DEFAULT tableCompressionTableSpace? storageClause?
+    | (ONLINE|OFFLINE)
+    )
+    ;
+
+dropFunction
+    : DROP FUNCTION (schemaName DOT_)? function
+    ;
+
+compileTypeClause
+    : COMPILE DEBUG? (SPECIFICATION|BODY)? compilerParametersClause? REUSE SETTINGS
+    ;
+
+inheritanceClauses
+    : (NOT? (OVERRIDING | FINAL | INSTANTIABLE))+
+    ;
+
+procedureSpec
+    : PROCEDURE procedureName LP_ (parameterValue typeName (COMMA_ parameterValue typeName)*) RP_ ((IS | AS) callSpec)?
+    ;
+
+returnClause
+    : RETURN dataType ((IS | AS) callSpec)?
+    ;
+
+functionSpec
+    : FUNCTION name LP_ (parameterValue dataType (COMMA_ parameterValue dataType)*) RP_ returnClause
+    ;
+
+subprogramSpec
+    : (MEMBER | STATIC) (procedureSpec | functionSpec)
+    ;
+
+constructorSpec
+    : FINAL? INSTANTIABLE? CONSTRUCTOR FUNCTION typeName
+    (LP_ (SELF IN OUT dataType COMMA_)? parameterValue dataType (COMMA_ parameterValue dataType)* RP_)?
+    RETURN SELF AS RESULT ((AS | IS) callSpec)?
+    ;
+
+mapOrderFunctionSpec
+    : (MAP | ORDER) MEMBER functionSpec
+    ;
+
+elementSpecification
+    : inheritanceClauses? (subprogramSpec | constructorSpec | mapOrderFunctionSpec)+
+    ;
+
+replaceTypeClause
+    : REPLACE invokerRightsClause? AS OBJECT LP_ (attributeName dataType (COMMA_ (elementSpecification | attributeName dataType))*) RP_
+    ;
+
+alterType
+    : ALTER TYPE typeName (compileTypeClause | replaceTypeClause)?
+    ;

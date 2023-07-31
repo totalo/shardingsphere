@@ -19,7 +19,9 @@ package org.apache.shardingsphere.data.pipeline.cdc.yaml.job;
 
 import org.apache.shardingsphere.data.pipeline.cdc.config.job.CDCJobConfiguration;
 import org.apache.shardingsphere.data.pipeline.cdc.constant.CDCSinkType;
-import org.apache.shardingsphere.data.pipeline.cdc.yaml.job.YamlCDCJobConfiguration.YamlSinkConfiguration;
+import org.apache.shardingsphere.data.pipeline.cdc.yaml.config.YamlCDCJobConfiguration;
+import org.apache.shardingsphere.data.pipeline.cdc.yaml.config.YamlCDCJobConfiguration.YamlSinkConfiguration;
+import org.apache.shardingsphere.data.pipeline.cdc.yaml.swapper.YamlCDCJobConfigurationSwapper;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
@@ -37,6 +39,7 @@ class YamlCDCJobConfigurationSwapperTest {
         yamlJobConfig.setDatabaseName("test_db");
         yamlJobConfig.setSchemaTableNames(Arrays.asList("test.t_order", "t_order_item"));
         yamlJobConfig.setFull(true);
+        yamlJobConfig.setSourceDatabaseType("MySQL");
         YamlSinkConfiguration sinkConfig = new YamlSinkConfiguration();
         sinkConfig.setSinkType(CDCSinkType.SOCKET.name());
         yamlJobConfig.setSinkConfig(sinkConfig);

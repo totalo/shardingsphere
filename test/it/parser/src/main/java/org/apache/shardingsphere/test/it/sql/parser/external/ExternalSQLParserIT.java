@@ -19,6 +19,7 @@ package org.apache.shardingsphere.test.it.sql.parser.external;
 
 import com.google.common.base.Preconditions;
 import lombok.SneakyThrows;
+import org.apache.shardingsphere.infra.util.exception.external.ShardingSphereExternalException;
 import org.apache.shardingsphere.infra.util.spi.type.typed.TypedSPILoader;
 import org.apache.shardingsphere.sql.parser.api.CacheOption;
 import org.apache.shardingsphere.sql.parser.api.SQLParserEngine;
@@ -34,6 +35,8 @@ import org.apache.shardingsphere.test.loader.strategy.TestParameterLoadStrategy;
 import org.apache.shardingsphere.test.loader.strategy.impl.GitHubTestParameterLoadStrategy;
 import org.junit.jupiter.api.condition.EnabledIf;
 import org.junit.jupiter.api.extension.ExtensionContext;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
@@ -49,6 +52,7 @@ public abstract class ExternalSQLParserIT {
     @ParameterizedTest(name = "{0} ({1}) -> {2}")
     @EnabledIf("isEnabled")
     @ArgumentsSource(TestCaseArgumentsProvider.class)
+    @Execution(ExecutionMode.CONCURRENT)
     void assertParseSQL(final String sqlCaseId, final String databaseType, final String sql, final String reportType) throws IOException {
         boolean isSuccess = false;
         try (
@@ -58,6 +62,7 @@ public abstract class ExternalSQLParserIT {
                 ParseASTNode parseASTNode = new SQLParserEngine(databaseType, new CacheOption(128, 1024L)).parse(sql, false);
                 new SQLStatementVisitorEngine(databaseType, true).visit(parseASTNode);
                 isSuccess = true;
+            } catch (final ShardingSphereExternalException | ClassCastException | IllegalArgumentException | IndexOutOfBoundsException ignore) {
             } finally {
                 resultReporter.printResult(sqlCaseId, databaseType, isSuccess, sql);
             }

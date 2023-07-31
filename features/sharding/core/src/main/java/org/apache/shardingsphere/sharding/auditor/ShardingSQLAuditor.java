@@ -17,7 +17,7 @@
 
 package org.apache.shardingsphere.sharding.auditor;
 
-import org.apache.shardingsphere.infra.binder.statement.SQLStatementContext;
+import org.apache.shardingsphere.infra.binder.context.statement.SQLStatementContext;
 import org.apache.shardingsphere.infra.executor.audit.SQLAuditor;
 import org.apache.shardingsphere.infra.hint.HintValueContext;
 import org.apache.shardingsphere.infra.metadata.database.ShardingSphereDatabase;
@@ -57,7 +57,7 @@ public final class ShardingSQLAuditor implements SQLAuditor<ShardingRule> {
         Collection<String> tableNames = sqlStatementContext.getTablesContext().getTableNames();
         Collection<ShardingAuditStrategyConfiguration> result = new ArrayList<>(tableNames.size());
         for (String each : tableNames) {
-            rule.findTableRule(each).ifPresent(tableRule -> result.add(rule.getAuditStrategyConfiguration(tableRule)));
+            rule.findTableRule(each).ifPresent(optional -> result.add(rule.getAuditStrategyConfiguration(optional)));
         }
         return result;
     }

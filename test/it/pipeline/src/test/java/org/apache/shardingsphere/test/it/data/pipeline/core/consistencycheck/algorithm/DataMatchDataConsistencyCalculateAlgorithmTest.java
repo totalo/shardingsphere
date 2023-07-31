@@ -23,7 +23,8 @@ import org.apache.shardingsphere.data.pipeline.common.datasource.PipelineDataSou
 import org.apache.shardingsphere.data.pipeline.core.consistencycheck.DataConsistencyCalculateParameter;
 import org.apache.shardingsphere.data.pipeline.core.consistencycheck.algorithm.DataMatchDataConsistencyCalculateAlgorithm;
 import org.apache.shardingsphere.data.pipeline.core.consistencycheck.result.DataConsistencyCalculatedResult;
-import org.apache.shardingsphere.infra.database.type.dialect.H2DatabaseType;
+import org.apache.shardingsphere.infra.database.core.type.DatabaseType;
+import org.apache.shardingsphere.infra.util.spi.type.typed.TypedSPILoader;
 import org.apache.shardingsphere.test.util.PropertiesBuilder;
 import org.apache.shardingsphere.test.util.PropertiesBuilder.Property;
 import org.junit.jupiter.api.AfterAll;
@@ -50,9 +51,9 @@ class DataMatchDataConsistencyCalculateAlgorithmTest {
     
     @BeforeAll
     static void setUp() throws Exception {
-        source = new PipelineDataSourceWrapper(createHikariDataSource("source_ds"), new H2DatabaseType());
+        source = new PipelineDataSourceWrapper(createHikariDataSource("source_ds"), TypedSPILoader.getService(DatabaseType.class, "FIXTURE"));
         createTableAndInitData(source, "t_order_copy");
-        target = new PipelineDataSourceWrapper(createHikariDataSource("target_ds"), new H2DatabaseType());
+        target = new PipelineDataSourceWrapper(createHikariDataSource("target_ds"), TypedSPILoader.getService(DatabaseType.class, "FIXTURE"));
         createTableAndInitData(target, "t_order");
     }
     
@@ -140,8 +141,8 @@ class DataMatchDataConsistencyCalculateAlgorithmTest {
     }
     
     private DataConsistencyCalculateParameter generateParameter(final PipelineDataSourceWrapper dataSource, final String logicTableName, final Object dataCheckPosition) {
+        DatabaseType databaseType = TypedSPILoader.getService(DatabaseType.class, "H2");
         PipelineColumnMetaData uniqueKey = new PipelineColumnMetaData(1, "order_id", Types.INTEGER, "integer", false, true, true);
-        return new DataConsistencyCalculateParameter(dataSource, null, logicTableName, Collections.emptyList(),
-                "H2", "H2", uniqueKey, dataCheckPosition);
+        return new DataConsistencyCalculateParameter(dataSource, null, logicTableName, Collections.emptyList(), databaseType, uniqueKey, dataCheckPosition);
     }
 }

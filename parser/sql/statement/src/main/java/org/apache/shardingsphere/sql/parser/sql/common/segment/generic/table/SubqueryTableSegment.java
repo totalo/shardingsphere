@@ -22,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.expr.subquery.SubquerySegment;
 import org.apache.shardingsphere.sql.parser.sql.common.segment.generic.AliasSegment;
+import org.apache.shardingsphere.sql.parser.sql.common.value.identifier.IdentifierValue;
 
 import java.util.Optional;
 
@@ -43,8 +44,8 @@ public final class SubqueryTableSegment implements TableSegment {
     }
     
     @Override
-    public Optional<AliasSegment> getAlias() {
-        return Optional.ofNullable(alias);
+    public Optional<IdentifierValue> getAlias() {
+        return Optional.ofNullable(alias).map(AliasSegment::getIdentifier);
     }
     
     @Override
@@ -55,5 +56,14 @@ public final class SubqueryTableSegment implements TableSegment {
     @Override
     public int getStopIndex() {
         return subquery.getStopIndex();
+    }
+    
+    /**
+     * Get alias segment.
+     *
+     * @return alias segment
+     */
+    public Optional<AliasSegment> getAliasSegment() {
+        return Optional.ofNullable(alias);
     }
 }

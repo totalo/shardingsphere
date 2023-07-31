@@ -20,8 +20,9 @@ package org.apache.shardingsphere.data.pipeline.cdc.util;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.apache.shardingsphere.data.pipeline.cdc.protocol.request.StreamDataRequestBody.SchemaTable;
-import org.apache.shardingsphere.infra.database.type.DatabaseType;
-import org.apache.shardingsphere.infra.database.type.SchemaSupportedDatabaseType;
+import org.apache.shardingsphere.infra.database.core.metadata.database.DialectDatabaseMetaData;
+import org.apache.shardingsphere.infra.database.core.spi.DatabaseTypedSPILoader;
+import org.apache.shardingsphere.infra.database.core.metadata.database.system.DialectSystemDatabase;
 import org.apache.shardingsphere.infra.exception.SchemaNotFoundException;
 import org.apache.shardingsphere.infra.metadata.database.ShardingSphereDatabase;
 import org.apache.shardingsphere.infra.metadata.database.schema.model.ShardingSphereSchema;
@@ -50,7 +51,7 @@ public final class CDCSchemaTableUtils {
      * @return map key is schema, value is table names
      */
     public static Map<String, Set<String>> parseTableExpressionWithSchema(final ShardingSphereDatabase database, final Collection<SchemaTable> schemaTables) {
-        Collection<String> systemSchemas = database.getProtocolType().getSystemSchemas();
+        Collection<String> systemSchemas = DatabaseTypedSPILoader.getService(DialectSystemDatabase.class, database.getProtocolType()).getSystemSchemas();
         if (schemaTables.stream().anyMatch(each -> "*".equals(each.getTable()) && ("*".equals(each.getSchema()) || each.getSchema().isEmpty()))) {
             return parseTableExpressionWithAllTables(database, systemSchemas);
         }
@@ -83,7 +84,7 @@ public final class CDCSchemaTableUtils {
         for (Entry<String, ShardingSphereSchema> entry : database.getSchemas().entrySet()) {
             if (!systemSchemas.contains(entry.getKey())) {
                 entry.getValue().getAllTableNames().stream().filter(tableName -> tableName.equals(table.getTable())).findFirst()
-                        .ifPresent(tableName -> result.computeIfAbsent(entry.getKey(), ignored -> new HashSet<>()).add(tableName));
+                        .ifPresent(optional -> result.computeIfAbsent(entry.getKey(), ignored -> new HashSet<>()).add(optional));
             }
         }
         return result;
@@ -91,18 +92,12 @@ public final class CDCSchemaTableUtils {
     
     private static Map<String, Set<String>> parseTableExpressionWithAllTable(final ShardingSphereDatabase database, final SchemaTable each) {
         Map<String, Set<String>> result = new HashMap<>();
-        String schemaName = each.getSchema().isEmpty() ? getDefaultSchema(database.getProtocolType()) : each.getSchema();
+        DialectDatabaseMetaData dialectDatabaseMetaData = DatabaseTypedSPILoader.getService(DialectDatabaseMetaData.class, database.getProtocolType());
+        String schemaName = each.getSchema().isEmpty() ? dialectDatabaseMetaData.getDefaultSchema().orElseThrow(() -> new IllegalStateException("Default schema should exist.")) : each.getSchema();
         ShardingSphereSchema schema = database.getSchema(schemaName);
         ShardingSpherePreconditions.checkNotNull(schema, () -> new SchemaNotFoundException(each.getSchema()));
         schema.getAllTableNames().forEach(tableName -> result.computeIfAbsent(schemaName, ignored -> new HashSet<>()).add(tableName));
         return result;
-    }
-    
-    private static String getDefaultSchema(final DatabaseType databaseType) {
-        if (!(databaseType instanceof SchemaSupportedDatabaseType)) {
-            return null;
-        }
-        return ((SchemaSupportedDatabaseType) databaseType).getDefaultSchema();
     }
     
     /**

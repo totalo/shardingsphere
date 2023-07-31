@@ -124,12 +124,21 @@ public interface ModeContextManager {
     }
     
     /**
-     * Remove rule configuration.
+     * Remove rule configuration item.
      *
      * @param databaseName database name
      * @param toBeRemovedRuleConfig to be removed rule config
      */
-    default void removeRuleConfiguration(String databaseName, RuleConfiguration toBeRemovedRuleConfig) {
+    default void removeRuleConfigurationItem(String databaseName, RuleConfiguration toBeRemovedRuleConfig) {
+    }
+    
+    /**
+     * Remove rule configuration.
+     *
+     * @param databaseName database name
+     * @param ruleName rule name
+     */
+    default void removeRuleConfiguration(String databaseName, String ruleName) {
     }
     
     /**
@@ -154,27 +163,4 @@ public interface ModeContextManager {
      * @param props pros
      */
     void alterProperties(Properties props);
-    
-    /**
-     * TODO Remove to MetaDataPersistService
-     * Get active version by key.
-     *
-     * @param key key
-     * @return active version
-     */
-    default String getActiveVersionByKey(String key) {
-        return "";
-    }
-    
-    /**
-     * TODO Remove to MetaDataPersistService
-     * Get version path by active version key.
-     *
-     * @param key key
-     * @param activeVersion active version
-     * @return version path
-     */
-    default String getVersionPathByActiveVersionKey(String key, String activeVersion) {
-        return "";
-    }
 }

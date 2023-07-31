@@ -43,6 +43,14 @@ public final class ColumnSegment implements ExpressionSegment, OwnerAvailable {
     
     private OwnerSegment owner;
     
+    private IdentifierValue originalDatabase;
+    
+    private IdentifierValue originalSchema;
+    
+    private IdentifierValue originalTable;
+    
+    private IdentifierValue originalColumn;
+    
     /**
      * Get qualified name with quote characters.
      * i.e. `field1`, `table1`, field1, table1, `table1`.`field1`, `table1`.field1, table1.`field1` or table1.field1
@@ -65,5 +73,10 @@ public final class ColumnSegment implements ExpressionSegment, OwnerAvailable {
     @Override
     public Optional<OwnerSegment> getOwner() {
         return Optional.ofNullable(owner);
+    }
+    
+    @Override
+    public String getText() {
+        return getExpression();
     }
 }

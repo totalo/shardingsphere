@@ -17,10 +17,11 @@
 
 package org.apache.shardingsphere.sharding.cache.checker;
 
-import org.apache.shardingsphere.infra.binder.SQLStatementContextFactory;
+import org.apache.shardingsphere.infra.binder.engine.SQLBindEngine;
+import org.apache.shardingsphere.infra.binder.context.statement.SQLStatementContext;
 import org.apache.shardingsphere.infra.config.algorithm.AlgorithmConfiguration;
 import org.apache.shardingsphere.infra.config.props.ConfigurationProperties;
-import org.apache.shardingsphere.infra.database.type.DatabaseType;
+import org.apache.shardingsphere.infra.database.core.type.DatabaseType;
 import org.apache.shardingsphere.infra.instance.ComputeNodeInstance;
 import org.apache.shardingsphere.infra.instance.InstanceContext;
 import org.apache.shardingsphere.infra.metadata.ShardingSphereMetaData;
@@ -36,6 +37,7 @@ import org.apache.shardingsphere.infra.util.spi.type.typed.TypedSPILoader;
 import org.apache.shardingsphere.sharding.api.config.ShardingRuleConfiguration;
 import org.apache.shardingsphere.sharding.api.config.cache.ShardingCacheConfiguration;
 import org.apache.shardingsphere.sharding.api.config.cache.ShardingCacheOptionsConfiguration;
+import org.apache.shardingsphere.sharding.api.config.rule.ShardingAutoTableRuleConfiguration;
 import org.apache.shardingsphere.sharding.api.config.rule.ShardingTableReferenceRuleConfiguration;
 import org.apache.shardingsphere.sharding.api.config.rule.ShardingTableRuleConfiguration;
 import org.apache.shardingsphere.sharding.api.config.strategy.sharding.StandardShardingStrategyConfiguration;
@@ -87,10 +89,10 @@ class ShardingRouteCacheableCheckerTest {
         ruleConfig.getBindingTableGroups().add(new ShardingTableReferenceRuleConfiguration("foo", "t_order,t_order_item"));
         ruleConfig.getShardingAlgorithms().put("mod", new AlgorithmConfiguration("MOD", PropertiesBuilder.build(new Property("sharding-count", "2"))));
         ruleConfig.getShardingAlgorithms().put("inline", new AlgorithmConfiguration("INLINE", PropertiesBuilder.build(new Property("algorithm-expression", "ds_${id % 2}"))));
-        ruleConfig.setDefaultDatabaseShardingStrategy(new StandardShardingStrategyConfiguration("warehouse_id", "mod"));
-        ShardingTableRuleConfiguration warehouse = new ShardingTableRuleConfiguration("t_warehouse", "ds_${0..1}.t_warehouse");
-        warehouse.setDatabaseShardingStrategy(new StandardShardingStrategyConfiguration("id", "mod"));
-        ruleConfig.getTables().add(warehouse);
+        ruleConfig.setDefaultDatabaseShardingStrategy(new StandardShardingStrategyConfiguration("warehouse_id", "inline"));
+        ShardingAutoTableRuleConfiguration warehouse = new ShardingAutoTableRuleConfiguration("t_warehouse", "ds_${0..1}");
+        warehouse.setShardingStrategy(new StandardShardingStrategyConfiguration("id", "mod"));
+        ruleConfig.getAutoTables().add(warehouse);
         ruleConfig.getTables().add(new ShardingTableRuleConfiguration("t_order", "ds_${0..1}.t_order"));
         ruleConfig.getTables().add(new ShardingTableRuleConfiguration("t_order_item", "ds_${0..1}.t_order_item"));
         ShardingTableRuleConfiguration nonCacheableDatabaseSharding = new ShardingTableRuleConfiguration("t_non_cacheable_database_sharding", "ds_${0..1}.t_non_cacheable_database_sharding");
@@ -126,16 +128,18 @@ class ShardingRouteCacheableCheckerTest {
     }
     
     private QueryContext createQueryContext(final ShardingSphereDatabase database, final String sql, final List<Object> params) {
-        return new QueryContext(SQLStatementContextFactory.newInstance(createShardingSphereMetaData(database), params, parse(sql), DATABASE_NAME), sql, params);
+        SQLStatementContext sqlStatementContext = new SQLBindEngine(createShardingSphereMetaData(database), DATABASE_NAME).bind(parse(sql), params);
+        return new QueryContext(sqlStatementContext, sql, params);
     }
     
     private ShardingSphereMetaData createShardingSphereMetaData(final ShardingSphereDatabase database) {
-        return new ShardingSphereMetaData(Collections.singletonMap(DATABASE_NAME, database), mock(ShardingSphereRuleMetaData.class), mock(ConfigurationProperties.class));
+        return new ShardingSphereMetaData(Collections.singletonMap(DATABASE_NAME, database), mock(ShardingSphereResourceMetaData.class),
+                mock(ShardingSphereRuleMetaData.class), mock(ConfigurationProperties.class));
     }
     
     private SQLStatement parse(final String sql) {
         CacheOption cacheOption = new CacheOption(0, 0);
-        return new SQLStatementParserEngine("PostgreSQL", cacheOption, cacheOption, false).parse(sql, false);
+        return new SQLStatementParserEngine(TypedSPILoader.getService(DatabaseType.class, "PostgreSQL"), cacheOption, cacheOption, false).parse(sql, false);
     }
     
     private static class TestCaseArgumentsProvider implements ArgumentsProvider {
